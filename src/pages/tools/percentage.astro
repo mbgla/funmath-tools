@@ -1,0 +1,144 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { useTranslations, getLangFromUrl } from '../../i18n/ui';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const title = `${t('tool.percentage.name' as any)} — FunMath Tools`;
+const description = t('tool.percentage.long' as any);
+---
+
+<BaseLayout title={title} description={description}>
+  <nav class="text-sm text-slate-500 mb-4">
+    <a href="/" class="hover:text-brand-500">{t('nav.home' as any)}</a>
+    <span class="mx-2">/</span>
+    <span>{t('tool.percentage.name' as any)}</span>
+  </nav>
+
+  <div class="text-center mb-8">
+    <div class="inline-flex w-20 h-20 rounded-3xl bg-gradient-to-br from-teal-400 to-cyan-600 items-center justify-center text-4xl font-black text-white mb-4">%</div>
+    <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 mb-3">{t('tool.percentage.name' as any)}</h1>
+    <p class="text-slate-600 max-w-xl mx-auto">{t('tool.percentage.long' as any)}</p>
+  </div>
+
+  <div class="max-w-2xl mx-auto space-y-6">
+    
+    <!-- Calc 1: X% of Y -->
+    <div class="bg-white rounded-3xl shadow-xl p-6">
+      <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2">
+        <span class="text-teal-500">➊</span> {t('pct.what_is' as any)} X% {t('pct.of' as any)} Y?
+      </h3>
+      <div class="flex items-center gap-2 flex-wrap mb-3">
+        <input type="number" id="p1a" placeholder="25" class="w-24 px-3 py-2 border-2 border-slate-200 rounded-xl text-center font-bold focus:border-teal-500 focus:outline-none"/>
+        <span class="font-bold text-lg">%</span>
+        <span class="text-slate-500">{t('pct.of' as any)}</span>
+        <input type="number" id="p1b" placeholder="200" class="w-24 px-3 py-2 border-2 border-slate-200 rounded-xl text-center font-bold focus:border-teal-500 focus:outline-none"/>
+        <span class="font-bold text-lg">=</span>
+        <div id="p1r" class="flex-1 min-w-[80px] px-3 py-2 bg-teal-50 border-2 border-teal-200 rounded-xl text-center font-black text-teal-700 text-lg">—</div>
+      </div>
+    </div>
+
+    <!-- Calc 2: X is what % of Y -->
+    <div class="bg-white rounded-3xl shadow-xl p-6">
+      <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2">
+        <span class="text-teal-500">➋</span> X is what % {t('pct.of' as any)} Y?
+      </h3>
+      <div class="flex items-center gap-2 flex-wrap mb-3">
+        <input type="number" id="p2a" placeholder="50" class="w-24 px-3 py-2 border-2 border-slate-200 rounded-xl text-center font-bold focus:border-teal-500 focus:outline-none"/>
+        <span class="text-slate-500">{t('pct.of' as any)}</span>
+        <input type="number" id="p2b" placeholder="200" class="w-24 px-3 py-2 border-2 border-slate-200 rounded-xl text-center font-bold focus:border-teal-500 focus:outline-none"/>
+        <span class="font-bold text-lg">=</span>
+        <div id="p2r" class="flex-1 min-w-[80px] px-3 py-2 bg-teal-50 border-2 border-teal-200 rounded-xl text-center font-black text-teal-700 text-lg">—</div>
+      </div>
+    </div>
+
+    <!-- Calc 3: % change from X to Y -->
+    <div class="bg-white rounded-3xl shadow-xl p-6">
+      <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2">
+        <span class="text-teal-500">➌</span> {t('pct.increase' as any)}
+      </h3>
+      <div class="flex items-center gap-2 flex-wrap mb-3">
+        <span class="text-slate-500">{t('pct.from' as any)}</span>
+        <input type="number" id="p3a" placeholder="100" class="w-24 px-3 py-2 border-2 border-slate-200 rounded-xl text-center font-bold focus:border-teal-500 focus:outline-none"/>
+        <span class="text-slate-500">{t('pct.to' as any)}</span>
+        <input type="number" id="p3b" placeholder="150" class="w-24 px-3 py-2 border-2 border-slate-200 rounded-xl text-center font-bold focus:border-teal-500 focus:outline-none"/>
+        <span class="font-bold text-lg">=</span>
+        <div id="p3r" class="flex-1 min-w-[80px] px-3 py-2 bg-teal-50 border-2 border-teal-200 rounded-xl text-center font-black text-teal-700 text-lg">—</div>
+      </div>
+    </div>
+
+    <!-- Calc 4: Discount -->
+    <div class="bg-white rounded-3xl shadow-xl p-6">
+      <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2">
+        <span class="text-teal-500">➍</span> Discount / Tip
+      </h3>
+      <div class="flex items-center gap-2 flex-wrap mb-3">
+        <span class="text-slate-500">Price</span>
+        <input type="number" id="p4a" placeholder="100" class="w-24 px-3 py-2 border-2 border-slate-200 rounded-xl text-center font-bold focus:border-teal-500 focus:outline-none"/>
+        <span class="text-slate-500">±</span>
+        <input type="number" id="p4b" placeholder="20" class="w-20 px-3 py-2 border-2 border-slate-200 rounded-xl text-center font-bold focus:border-teal-500 focus:outline-none"/>
+        <span class="font-bold">%</span>
+        <span class="font-bold text-lg">=</span>
+        <div id="p4r" class="flex-1 min-w-[80px] px-3 py-2 bg-teal-50 border-2 border-teal-200 rounded-xl text-center font-black text-teal-700 text-lg">—</div>
+      </div>
+      <div class="flex gap-2 text-xs">
+        <button data-sign="-" class="sign-btn flex-1 py-1 rounded-lg bg-red-100 text-red-700 font-bold active:scale-95 transition">− Discount</button>
+        <button data-sign="+" class="sign-btn flex-1 py-1 rounded-lg bg-green-100 text-green-700 font-bold active:scale-95 transition">+ Tip/Tax</button>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  function num(id: string): number {
+    const el = document.getElementById(id) as HTMLInputElement;
+    const v = parseFloat(el?.value || '');
+    return isNaN(v) ? NaN : v;
+  }
+  function setR(id: string, val: string) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
+  }
+  function fmt(n: number): string {
+    if (!isFinite(n)) return '—';
+    return n.toFixed(Math.abs(n) < 10 ? 2 : 1).replace(/\.?0+$/, '');
+  }
+
+  function calc1() {
+    const a = num('p1a'), b = num('p1b');
+    if (isNaN(a) || isNaN(b)) { setR('p1r', '—'); return; }
+    setR('p1r', fmt((a / 100) * b));
+  }
+  function calc2() {
+    const a = num('p2a'), b = num('p2b');
+    if (isNaN(a) || isNaN(b) || b === 0) { setR('p2r', '—'); return; }
+    setR('p2r', fmt((a / b) * 100) + '%');
+  }
+  function calc3() {
+    const a = num('p3a'), b = num('p3b');
+    if (isNaN(a) || isNaN(b) || a === 0) { setR('p3r', '—'); return; }
+    const change = ((b - a) / a) * 100;
+    const sign = change > 0 ? '+' : '';
+    setR('p3r', sign + fmt(change) + '%');
+  }
+  let sign = -1;
+  function calc4() {
+    const a = num('p4a'), b = num('p4b');
+    if (isNaN(a) || isNaN(b)) { setR('p4r', '—'); return; }
+    setR('p4r', fmt(a + sign * (a * b / 100)));
+  }
+
+  ['p1a','p1b'].forEach(id => document.getElementById(id)?.addEventListener('input', calc1));
+  ['p2a','p2b'].forEach(id => document.getElementById(id)?.addEventListener('input', calc2));
+  ['p3a','p3b'].forEach(id => document.getElementById(id)?.addEventListener('input', calc3));
+  ['p4a','p4b'].forEach(id => document.getElementById(id)?.addEventListener('input', calc4));
+  
+  document.querySelectorAll('.sign-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      sign = (btn as HTMLElement).dataset.sign === '+' ? 1 : -1;
+      document.querySelectorAll('.sign-btn').forEach(b => b.classList.remove('ring-2', 'ring-teal-500'));
+      btn.classList.add('ring-2', 'ring-teal-500');
+      calc4();
+    });
+  });
+</script>

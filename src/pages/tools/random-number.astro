@@ -1,0 +1,242 @@
+---
+// src/pages/tools/random-number.astro
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { useTranslations, getLangFromUrl } from '../../i18n/ui';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+
+const title = `${t('tool.random-number.name' as any)} — FunMath Tools`;
+const description = t('tool.random-number.long' as any);
+---
+
+<BaseLayout title={title} description={description}>
+  <!-- Breadcrumb -->
+  <nav class="text-sm text-slate-500 mb-4">
+    <a href="/" class="hover:text-brand-500">{t('nav.home' as any)}</a>
+    <span class="mx-2">/</span>
+    <span>{t('tool.random-number.name' as any)}</span>
+  </nav>
+
+  <!-- Tool Header -->
+  <div class="text-center mb-8">
+    <div class="inline-flex w-20 h-20 rounded-3xl bg-gradient-to-br from-blue-400 to-indigo-600 items-center justify-center text-5xl mb-4">
+      🎲
+    </div>
+    <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 mb-3">
+      {t('tool.random-number.name' as any)}
+    </h1>
+    <p class="text-slate-600 max-w-xl mx-auto">
+      {t('tool.random-number.long' as any)}
+    </p>
+  </div>
+
+  <!-- Tool -->
+  <div class="max-w-2xl mx-auto bg-white rounded-3xl shadow-xl p-6 md:p-8">
+    
+    <!-- Settings -->
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+      <div>
+        <label class="block text-sm font-semibold text-slate-700 mb-1">
+          {t('rng.min' as any)}
+        </label>
+        <input 
+          type="number" 
+          id="min" 
+          value="1"
+          class="w-full px-4 py-2 border-2 border-slate-200 rounded-xl focus:border-brand-500 focus:outline-none text-lg font-bold text-center"
+        />
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-slate-700 mb-1">
+          {t('rng.max' as any)}
+        </label>
+        <input 
+          type="number" 
+          id="max" 
+          value="100"
+          class="w-full px-4 py-2 border-2 border-slate-200 rounded-xl focus:border-brand-500 focus:outline-none text-lg font-bold text-center"
+        />
+      </div>
+      <div class="col-span-2 md:col-span-1">
+        <label class="block text-sm font-semibold text-slate-700 mb-1">
+          {t('rng.count' as any)}
+        </label>
+        <input 
+          type="number" 
+          id="count" 
+          value="1" 
+          min="1" 
+          max="100"
+          class="w-full px-4 py-2 border-2 border-slate-200 rounded-xl focus:border-brand-500 focus:outline-none text-lg font-bold text-center"
+        />
+      </div>
+    </div>
+
+    <!-- Unique toggle -->
+    <label class="flex items-center gap-2 mb-6 cursor-pointer select-none">
+      <input type="checkbox" id="unique" class="w-5 h-5 accent-brand-500" />
+      <span class="text-sm font-medium text-slate-700">
+        {t('rng.unique' as any)}
+      </span>
+    </label>
+
+    <!-- Generate Button -->
+    <button 
+      id="generateBtn"
+      class="w-full bg-gradient-to-r from-brand-500 to-brand-600 text-white py-4 rounded-2xl font-bold text-lg shadow-lg shadow-brand-500/30 hover:shadow-xl hover:scale-[1.02] active:scale-95 transition"
+    >
+      🎲 {t('rng.generate' as any)}
+    </button>
+
+    <!-- Result Display -->
+    <div id="result" class="mt-8 min-h-[120px] flex items-center justify-center">
+      <div class="text-slate-300 text-6xl">?</div>
+    </div>
+
+    <!-- History -->
+    <div id="historySection" class="mt-8 hidden">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-bold text-slate-700">{t('rng.history' as any)}</h3>
+        <button id="clearBtn" class="text-xs text-red-500 hover:text-red-700 font-medium">
+          {t('rng.clear' as any)}
+        </button>
+      </div>
+      <div id="history" class="space-y-1 max-h-40 overflow-y-auto text-sm"></div>
+    </div>
+  </div>
+
+  <!-- AdSense placeholder (will be activated after approval) -->
+  <div class="max-w-2xl mx-auto mt-8">
+    <!-- <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-XXX" data-ad-slot="YYY" data-ad-format="auto"></ins> -->
+  </div>
+
+  <!-- SEO Content -->
+  <section class="max-w-2xl mx-auto mt-16 prose prose-slate">
+    <h2 class="text-2xl font-bold mb-4">How to use this tool</h2>
+    <ol class="space-y-2 text-slate-700">
+      <li>Set the minimum and maximum values for your range.</li>
+      <li>Choose how many numbers you want to generate.</li>
+      <li>Toggle "No duplicates" if you need unique numbers only.</li>
+      <li>Click Generate — that's it!</li>
+    </ol>
+    <h2 class="text-2xl font-bold mt-8 mb-4">Common use cases</h2>
+    <ul class="space-y-2 text-slate-700">
+      <li><strong>Classroom picks:</strong> Randomly select students or teams.</li>
+      <li><strong>Math practice:</strong> Generate practice problems.</li>
+      <li><strong>Raffles & draws:</strong> Fair winner selection.</li>
+      <li><strong>Games:</strong> Add randomness to any activity.</li>
+    </ul>
+  </section>
+</BaseLayout>
+
+<script>
+  const minEl = document.getElementById('min') as HTMLInputElement;
+  const maxEl = document.getElementById('max') as HTMLInputElement;
+  const countEl = document.getElementById('count') as HTMLInputElement;
+  const uniqueEl = document.getElementById('unique') as HTMLInputElement;
+  const generateBtn = document.getElementById('generateBtn');
+  const resultDiv = document.getElementById('result');
+  const historySection = document.getElementById('historySection');
+  const historyDiv = document.getElementById('history');
+  const clearBtn = document.getElementById('clearBtn');
+
+  let history: string[] = [];
+
+  function generate() {
+    const min = parseInt(minEl.value);
+    const max = parseInt(maxEl.value);
+    const count = Math.max(1, Math.min(100, parseInt(countEl.value) || 1));
+    const unique = uniqueEl.checked;
+
+    if (isNaN(min) || isNaN(max) || min > max) {
+      if (resultDiv) resultDiv.innerHTML = '<div class="text-red-500 font-bold">Invalid range</div>';
+      return;
+    }
+    if (unique && (max - min + 1) < count) {
+      if (resultDiv) resultDiv.innerHTML = '<div class="text-red-500 font-bold text-sm text-center">Range too small for unique numbers</div>';
+      return;
+    }
+
+    const results: number[] = [];
+    if (unique) {
+      const pool: number[] = [];
+      for (let i = min; i <= max; i++) pool.push(i);
+      for (let i = 0; i < count; i++) {
+        const idx = Math.floor(Math.random() * pool.length);
+        results.push(pool[idx]);
+        pool.splice(idx, 1);
+      }
+    } else {
+      for (let i = 0; i < count; i++) {
+        results.push(Math.floor(Math.random() * (max - min + 1)) + min);
+      }
+    }
+
+    // Display with animation
+    if (resultDiv) {
+      resultDiv.innerHTML = '';
+      if (count === 1) {
+        const span = document.createElement('div');
+        span.className = 'text-7xl font-black bg-gradient-to-br from-brand-500 to-brand-700 bg-clip-text text-transparent animate-bounce-once';
+        span.textContent = String(results[0]);
+        resultDiv.appendChild(span);
+      } else {
+        const grid = document.createElement('div');
+        grid.className = 'flex flex-wrap gap-2 justify-center';
+        results.forEach((num, i) => {
+          const chip = document.createElement('div');
+          chip.className = 'px-4 py-2 bg-gradient-to-br from-brand-500 to-brand-600 text-white rounded-xl font-bold text-xl shadow opacity-0';
+          chip.textContent = String(num);
+          chip.style.animation = `fadeIn 0.3s ease-out ${i * 0.05}s forwards`;
+          grid.appendChild(chip);
+        });
+        resultDiv.appendChild(grid);
+      }
+    }
+
+    // Add to history
+    history.unshift(results.join(', '));
+    if (history.length > 10) history = history.slice(0, 10);
+    renderHistory();
+  }
+
+  function renderHistory() {
+    if (!historySection || !historyDiv) return;
+    if (history.length === 0) {
+      historySection.classList.add('hidden');
+      return;
+    }
+    historySection.classList.remove('hidden');
+    historyDiv.innerHTML = history.map((h, i) => 
+      `<div class="px-3 py-2 bg-slate-50 rounded-lg flex justify-between items-center">
+         <span class="text-slate-700 font-mono">${h}</span>
+         <span class="text-xs text-slate-400">#${history.length - i}</span>
+       </div>`
+    ).join('');
+  }
+
+  generateBtn?.addEventListener('click', generate);
+  clearBtn?.addEventListener('click', () => { history = []; renderHistory(); });
+  
+  // Enter key triggers generation
+  [minEl, maxEl, countEl].forEach(el => {
+    el?.addEventListener('keydown', (e: KeyboardEvent) => {
+      if (e.key === 'Enter') generate();
+    });
+  });
+</script>
+
+<style>
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px) scale(0.8); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @keyframes bounce-once {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+  }
+  .animate-bounce-once {
+    animation: bounce-once 0.4s ease-out;
+  }
+</style>

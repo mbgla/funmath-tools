@@ -1,0 +1,226 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { useTranslations, getLangFromUrl } from '../../i18n/ui';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const title = `${t('tool.times-tables.name' as any)} — FunMath Tools`;
+const description = t('tool.times-tables.long' as any);
+---
+
+<BaseLayout title={title} description={description}>
+  <nav class="text-sm text-slate-500 mb-4">
+    <a href="/" class="hover:text-brand-500">{t('nav.home' as any)}</a>
+    <span class="mx-2">/</span>
+    <span>{t('tool.times-tables.name' as any)}</span>
+  </nav>
+
+  <div class="text-center mb-8">
+    <div class="inline-flex w-20 h-20 rounded-3xl bg-gradient-to-br from-green-400 to-emerald-600 items-center justify-center text-5xl mb-4">✖️</div>
+    <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 mb-3">{t('tool.times-tables.name' as any)}</h1>
+    <p class="text-slate-600 max-w-xl mx-auto">{t('tool.times-tables.long' as any)}</p>
+  </div>
+
+  <div class="max-w-2xl mx-auto bg-white rounded-3xl shadow-xl p-6 md:p-8">
+    
+    <!-- Setup screen -->
+    <div id="setupScreen">
+      <h2 class="font-bold text-lg text-slate-800 mb-3">{t('tt.select' as any)}</h2>
+      <div class="grid grid-cols-4 gap-2 mb-6">
+        {[1,2,3,4,5,6,7,8,9,10,11,12].map(n => (
+          <label class="relative cursor-pointer">
+            <input type="checkbox" class="table-cb peer sr-only" value={n} checked={n >= 2 && n <= 5}/>
+            <div class="py-3 text-center font-bold rounded-xl border-2 border-slate-200 text-slate-500 peer-checked:bg-green-500 peer-checked:text-white peer-checked:border-green-500 transition">
+              ×{n}
+            </div>
+          </label>
+        ))}
+      </div>
+      <button id="startBtn" class="w-full py-4 rounded-2xl font-bold text-lg bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg shadow-green-500/30 active:scale-95 transition">
+        ▶ {t('tt.start' as any)}
+      </button>
+    </div>
+
+    <!-- Quiz screen -->
+    <div id="quizScreen" class="hidden">
+      <!-- Progress -->
+      <div class="flex justify-between items-center mb-4 text-sm font-semibold">
+        <span class="text-green-600">✓ {t('tt.correct' as any)}: <span id="correctCount">0</span></span>
+        <span class="text-slate-500">Q <span id="currentQ">1</span>/10</span>
+        <span class="text-red-600">✗ {t('tt.wrong' as any)}: <span id="wrongCount">0</span></span>
+      </div>
+      
+      <!-- Progress bar -->
+      <div class="h-2 bg-slate-100 rounded-full overflow-hidden mb-6">
+        <div id="progressBar" class="h-full bg-gradient-to-r from-green-500 to-emerald-600 transition-all duration-300" style="width:10%"></div>
+      </div>
+
+      <!-- Question -->
+      <div class="text-center py-8">
+        <div id="question" class="text-5xl md:text-7xl font-black text-slate-900 mb-4">? × ?</div>
+        <div class="text-slate-400 text-lg">= ?</div>
+      </div>
+
+      <!-- Answer input -->
+      <div class="flex gap-2 mb-4">
+        <input 
+          type="number" 
+          id="answerInput"
+          placeholder="Your answer..."
+          class="flex-1 px-4 py-3 border-2 border-slate-200 rounded-xl text-center text-2xl font-bold focus:border-green-500 focus:outline-none"
+        />
+        <button id="submitBtn" class="px-6 py-3 rounded-xl font-bold bg-green-500 text-white hover:bg-green-600 active:scale-95 transition">
+          ✓
+        </button>
+      </div>
+
+      <div id="feedback" class="text-center font-bold text-lg h-8"></div>
+    </div>
+
+    <!-- Results screen -->
+    <div id="resultsScreen" class="hidden text-center">
+      <div class="text-6xl mb-4" id="resultEmoji">🎉</div>
+      <h2 class="text-2xl font-black mb-2">{t('tt.score' as any)}</h2>
+      <div id="finalScore" class="text-6xl font-black bg-gradient-to-br from-green-500 to-emerald-600 bg-clip-text text-transparent mb-2">0/10</div>
+      <div id="resultMsg" class="text-slate-600 mb-6">—</div>
+      <button id="againBtn" class="w-full py-4 rounded-2xl font-bold text-lg bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg active:scale-95 transition">
+        🔄 Play Again
+      </button>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  const setupScreen = document.getElementById('setupScreen');
+  const quizScreen = document.getElementById('quizScreen');
+  const resultsScreen = document.getElementById('resultsScreen');
+  const startBtn = document.getElementById('startBtn');
+  const submitBtn = document.getElementById('submitBtn');
+  const againBtn = document.getElementById('againBtn');
+  const answerInput = document.getElementById('answerInput') as HTMLInputElement;
+  const questionEl = document.getElementById('question');
+  const feedbackEl = document.getElementById('feedback');
+  const correctCountEl = document.getElementById('correctCount');
+  const wrongCountEl = document.getElementById('wrongCount');
+  const currentQEl = document.getElementById('currentQ');
+  const progressBar = document.getElementById('progressBar');
+  const finalScoreEl = document.getElementById('finalScore');
+  const resultEmoji = document.getElementById('resultEmoji');
+  const resultMsg = document.getElementById('resultMsg');
+
+  const TOTAL_QUESTIONS = 10;
+  let questions: {a: number, b: number, ans: number}[] = [];
+  let current = 0;
+  let correct = 0;
+  let wrong = 0;
+
+  function beep(freq: number, duration = 0.1, type: OscillatorType = 'sine') {
+    try {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = type;
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.15, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(); osc.stop(ctx.currentTime + duration);
+    } catch(e) {}
+  }
+
+  function getSelectedTables(): number[] {
+    const cbs = document.querySelectorAll('.table-cb:checked') as NodeListOf<HTMLInputElement>;
+    return Array.from(cbs).map(cb => parseInt(cb.value));
+  }
+
+  function generateQuestions(tables: number[]) {
+    questions = [];
+    for (let i = 0; i < TOTAL_QUESTIONS; i++) {
+      const a = tables[Math.floor(Math.random() * tables.length)];
+      const b = Math.floor(Math.random() * 12) + 1;
+      questions.push({ a, b, ans: a * b });
+    }
+  }
+
+  function showQuestion() {
+    if (current >= questions.length) {
+      showResults();
+      return;
+    }
+    const q = questions[current];
+    if (questionEl) questionEl.textContent = `${q.a} × ${q.b}`;
+    if (currentQEl) currentQEl.textContent = String(current + 1);
+    if (progressBar) progressBar.style.width = `${((current + 1) / TOTAL_QUESTIONS) * 100}%`;
+    if (feedbackEl) feedbackEl.textContent = '';
+    if (answerInput) {
+      answerInput.value = '';
+      answerInput.focus();
+    }
+  }
+
+  function submitAnswer() {
+    const q = questions[current];
+    const val = parseInt(answerInput.value);
+    if (isNaN(val)) return;
+    
+    if (val === q.ans) {
+      correct++;
+      beep(880, 0.15);
+      if (correctCountEl) correctCountEl.textContent = String(correct);
+      if (feedbackEl) feedbackEl.innerHTML = '<span class="text-green-600">✓ Correct!</span>';
+    } else {
+      wrong++;
+      beep(200, 0.25, 'sawtooth');
+      if (wrongCountEl) wrongCountEl.textContent = String(wrong);
+      if (feedbackEl) feedbackEl.innerHTML = `<span class="text-red-600">✗ Answer: ${q.ans}</span>`;
+    }
+    
+    current++;
+    setTimeout(showQuestion, 800);
+  }
+
+  function showResults() {
+    quizScreen?.classList.add('hidden');
+    resultsScreen?.classList.remove('hidden');
+    if (finalScoreEl) finalScoreEl.textContent = `${correct}/${TOTAL_QUESTIONS}`;
+    
+    const pct = (correct / TOTAL_QUESTIONS) * 100;
+    if (resultEmoji && resultMsg) {
+      if (pct === 100) { resultEmoji.textContent = '🏆'; resultMsg.textContent = 'Perfect score! Amazing!'; }
+      else if (pct >= 80) { resultEmoji.textContent = '⭐'; resultMsg.textContent = 'Excellent work!'; }
+      else if (pct >= 60) { resultEmoji.textContent = '👍'; resultMsg.textContent = 'Good job! Keep practicing.'; }
+      else { resultEmoji.textContent = '📚'; resultMsg.textContent = 'Keep practicing, you\'ll get there!'; }
+    }
+    
+    if (pct >= 80) {
+      [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => beep(f, 0.2), i * 100));
+    }
+  }
+
+  function startQuiz() {
+    const tables = getSelectedTables();
+    if (tables.length === 0) { alert('Select at least one table!'); return; }
+    generateQuestions(tables);
+    current = 0;
+    correct = 0;
+    wrong = 0;
+    if (correctCountEl) correctCountEl.textContent = '0';
+    if (wrongCountEl) wrongCountEl.textContent = '0';
+    setupScreen?.classList.add('hidden');
+    resultsScreen?.classList.add('hidden');
+    quizScreen?.classList.remove('hidden');
+    showQuestion();
+  }
+
+  function playAgain() {
+    resultsScreen?.classList.add('hidden');
+    setupScreen?.classList.remove('hidden');
+  }
+
+  startBtn?.addEventListener('click', startQuiz);
+  submitBtn?.addEventListener('click', submitAnswer);
+  againBtn?.addEventListener('click', playAgain);
+  answerInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') submitAnswer();
+  });
+</script>
