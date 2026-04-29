@@ -1,0 +1,527 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { useTranslations, getLangFromUrl } from '../../../i18n/ui';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const title = 'Math Tic-Tac-Toe — 2 Player Strategy Game | FunMath Tools';
+const description = 'Free online Math Tic-Tac-Toe game. Solve the math problem to claim a square. 2-player strategy game perfect for classrooms and family fun.';
+---
+
+<BaseLayout title={title} description={description}>
+  <nav class="text-sm text-slate-500 mb-4">
+    <a href="/" class="hover:text-brand-500">Home</a>
+    <span class="mx-2">/</span>
+    <a href="/#games" class="hover:text-brand-500">Games</a>
+    <span class="mx-2">/</span>
+    <span>Math Tic-Tac-Toe</span>
+  </nav>
+
+  <div class="text-center mb-6">
+    <div class="inline-flex w-20 h-20 rounded-3xl bg-gradient-to-br from-cyan-500 to-blue-600 items-center justify-center text-5xl mb-4">⭕</div>
+    <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 mb-3">Math Tic-Tac-Toe</h1>
+    <p class="text-slate-600 max-w-xl mx-auto">Solve the math problem first to claim a square. 3-in-a-row wins!</p>
+  </div>
+
+  <!-- Setup screen -->
+  <div id="setupScreen" class="max-w-2xl mx-auto bg-white rounded-3xl shadow-xl p-6 md:p-8">
+    <h2 class="font-bold text-lg text-slate-800 mb-4 text-center">Game Mode</h2>
+    <div class="grid grid-cols-2 gap-3 mb-6">
+      <button class="mode-btn p-4 rounded-2xl font-bold border-2 border-slate-200 hover:border-cyan-500 transition" data-mode="2p" data-active="true">
+        <div class="text-2xl mb-1">👥</div>
+        <div>2 Players</div>
+        <div class="text-xs text-slate-500 font-normal">Same device</div>
+      </button>
+      <button class="mode-btn p-4 rounded-2xl font-bold border-2 border-slate-200 hover:border-cyan-500 transition" data-mode="cpu">
+        <div class="text-2xl mb-1">🤖</div>
+        <div>vs Computer</div>
+        <div class="text-xs text-slate-500 font-normal">Beat the AI</div>
+      </button>
+    </div>
+
+    <h2 class="font-bold text-lg text-slate-800 mb-4 text-center">Difficulty</h2>
+    <div class="grid grid-cols-3 gap-3 mb-6">
+      <button class="diff-btn p-4 rounded-2xl font-bold border-2 border-slate-200 hover:border-cyan-500 transition" data-diff="easy" data-active="true">
+        <div class="text-2xl mb-1">🌱</div>
+        <div>Easy</div>
+        <div class="text-xs text-slate-500 font-normal">+, − (1-15)</div>
+      </button>
+      <button class="diff-btn p-4 rounded-2xl font-bold border-2 border-slate-200 hover:border-cyan-500 transition" data-diff="medium">
+        <div class="text-2xl mb-1">🔥</div>
+        <div>Medium</div>
+        <div class="text-xs text-slate-500 font-normal">+, −, ×</div>
+      </button>
+      <button class="diff-btn p-4 rounded-2xl font-bold border-2 border-slate-200 hover:border-cyan-500 transition" data-diff="hard">
+        <div class="text-2xl mb-1">⚡</div>
+        <div>Hard</div>
+        <div class="text-xs text-slate-500 font-normal">All ops</div>
+      </button>
+    </div>
+
+    <div class="bg-cyan-50 border border-cyan-200 rounded-xl p-4 mb-6 text-sm text-cyan-800">
+      <strong>🎯 How it works:</strong>
+      <ul class="mt-2 space-y-1 list-disc list-inside">
+        <li>Click any empty square — a math problem appears</li>
+        <li>Solve it correctly to claim the square</li>
+        <li>Wrong answer = turn skipped to opponent</li>
+        <li>Get 3 in a row to win!</li>
+      </ul>
+    </div>
+
+    <button id="startBtn" class="w-full py-4 rounded-2xl font-bold text-lg bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg active:scale-95 transition">
+      ⭕ Start Game
+    </button>
+  </div>
+
+  <!-- Game screen -->
+  <div id="gameScreen" class="hidden max-w-md mx-auto">
+    <!-- Score -->
+    <div class="grid grid-cols-2 gap-2 mb-3">
+      <div id="p1Card" class="bg-white rounded-xl p-3 shadow text-center transition-all">
+        <div class="text-xs font-bold text-cyan-600">❌ Player 1</div>
+        <div class="text-2xl font-black text-slate-900" id="p1Score">0</div>
+      </div>
+      <div id="p2Card" class="bg-white rounded-xl p-3 shadow text-center transition-all">
+        <div class="text-xs font-bold text-pink-600" id="p2Label">⭕ Player 2</div>
+        <div class="text-2xl font-black text-slate-900" id="p2Score">0</div>
+      </div>
+    </div>
+
+    <!-- Turn indicator -->
+    <div id="turnIndicator" class="bg-cyan-100 text-cyan-800 rounded-xl p-2 text-center font-bold mb-3 transition-all">
+      Player 1's turn (❌)
+    </div>
+
+    <!-- Game board -->
+    <div id="board" class="grid grid-cols-3 gap-2 bg-slate-200 p-2 rounded-2xl shadow-xl mb-3"></div>
+
+    <button id="resetMatchBtn" class="w-full py-2 rounded-xl font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition text-sm">
+      🔄 Reset Match
+    </button>
+  </div>
+
+  <!-- Question Modal -->
+  <div id="questionModal" class="fixed inset-0 bg-black/60 z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-3xl p-6 max-w-sm w-full text-center">
+      <div id="questionPlayer" class="text-sm font-bold text-cyan-600 mb-2">Player 1's turn</div>
+      <div id="questionText" class="text-4xl md:text-5xl font-black text-slate-900 mb-4">? + ?</div>
+      <div class="flex gap-2 mb-3">
+        <input
+          type="number"
+          id="modalAnswerInput"
+          inputmode="numeric"
+          autocomplete="off"
+          placeholder="?"
+          class="flex-1 px-4 py-3 border-2 border-slate-200 rounded-xl text-center text-2xl font-black focus:border-cyan-500 focus:outline-none"
+        />
+        <button id="modalSubmitBtn" class="px-6 rounded-xl font-bold bg-cyan-500 text-white text-2xl hover:bg-cyan-600 active:scale-95 transition">
+          ✓
+        </button>
+      </div>
+      <div id="modalFeedback" class="font-bold text-lg h-7"></div>
+      <div id="modalTimer" class="mt-2 text-xs text-slate-500">⏱ <span id="modalTimerVal">10</span>s</div>
+    </div>
+  </div>
+
+  <!-- Win Modal -->
+  <div id="winModal" class="fixed inset-0 bg-black/60 z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-3xl p-6 max-w-sm w-full text-center">
+      <div class="text-7xl mb-3" id="winEmoji">🏆</div>
+      <h2 id="winTitle" class="text-3xl font-black mb-4">Player 1 Wins!</h2>
+      <div class="flex gap-3">
+        <button id="rematchBtn" class="flex-1 py-3 rounded-xl font-bold bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow active:scale-95 transition">
+          🔄 Rematch
+        </button>
+        <button id="winSettingsBtn" class="flex-1 py-3 rounded-xl font-bold bg-slate-200 text-slate-700 active:scale-95 transition">
+          ⚙️ Settings
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <section class="max-w-2xl mx-auto mt-16 prose prose-slate">
+    <h2 class="text-2xl font-bold mb-4">How to Play</h2>
+    <ol class="space-y-2 text-slate-700">
+      <li>Click any empty square on the 3×3 grid.</li>
+      <li>A math equation appears — solve it within 10 seconds.</li>
+      <li>Correct answer? You claim that square with X or O.</li>
+      <li>Wrong or timeout? Turn passes to opponent.</li>
+      <li>Get 3 in a row (horizontal, vertical, or diagonal) to win!</li>
+    </ol>
+    <h2 class="text-2xl font-bold mt-8 mb-4">Strategy Tips</h2>
+    <ul class="space-y-2 text-slate-700">
+      <li><strong>Center first:</strong> The center square is part of 4 winning lines.</li>
+      <li><strong>Block opponent:</strong> If they have 2 in a row, block them.</li>
+      <li><strong>Speed matters:</strong> Solve fast to maintain pressure.</li>
+    </ul>
+  </section>
+</BaseLayout>
+
+<script>
+  const setupScreen = document.getElementById('setupScreen');
+  const gameScreen = document.getElementById('gameScreen');
+  const startBtn = document.getElementById('startBtn');
+  const resetMatchBtn = document.getElementById('resetMatchBtn');
+  const rematchBtn = document.getElementById('rematchBtn');
+  const winSettingsBtn = document.getElementById('winSettingsBtn');
+  const board = document.getElementById('board');
+  const turnIndicator = document.getElementById('turnIndicator');
+  const p1Card = document.getElementById('p1Card');
+  const p2Card = document.getElementById('p2Card');
+  const p1ScoreEl = document.getElementById('p1Score');
+  const p2ScoreEl = document.getElementById('p2Score');
+  const p2Label = document.getElementById('p2Label');
+
+  const questionModal = document.getElementById('questionModal');
+  const questionPlayer = document.getElementById('questionPlayer');
+  const questionText = document.getElementById('questionText');
+  const modalAnswerInput = document.getElementById('modalAnswerInput') as HTMLInputElement;
+  const modalSubmitBtn = document.getElementById('modalSubmitBtn');
+  const modalFeedback = document.getElementById('modalFeedback');
+  const modalTimerVal = document.getElementById('modalTimerVal');
+
+  const winModal = document.getElementById('winModal');
+  const winEmoji = document.getElementById('winEmoji');
+  const winTitle = document.getElementById('winTitle');
+
+  let cells: (number | null)[] = Array(9).fill(null); // null, 0 (P1=X), 1 (P2=O)
+  let currentPlayer = 0;
+  let p1Score = 0;
+  let p2Score = 0;
+  let mode = '2p';
+  let difficulty = 'easy';
+  let pendingCell = -1;
+  let currentAnswer = 0;
+  let questionTimer: number | null = null;
+  let timeLeft = 10;
+  let gameActive = false;
+
+  function beep(freq: number, dur = 0.06, type: OscillatorType = 'sine') {
+    try {
+      const c = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const osc = c.createOscillator();
+      const gain = c.createGain();
+      osc.type = type;
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.1, c.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, c.currentTime + dur);
+      osc.connect(gain); gain.connect(c.destination);
+      osc.start(); osc.stop(c.currentTime + dur);
+    } catch (e) {}
+  }
+
+  function rand(min: number, max: number): number {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  function genQuestion(): { text: string; answer: number } {
+    const ops = difficulty === 'easy' ? ['+', '−'] : difficulty === 'medium' ? ['+', '−', '×'] : ['+', '−', '×', '÷'];
+    const op = ops[rand(0, ops.length - 1)];
+    const max = difficulty === 'easy' ? 15 : 12;
+    let a, b, ans, text;
+
+    if (op === '+') { a = rand(1, max); b = rand(1, max); ans = a + b; text = `${a} + ${b}`; }
+    else if (op === '−') { a = rand(2, max); b = rand(1, a - 1); ans = a - b; text = `${a} − ${b}`; }
+    else if (op === '×') { a = rand(2, 9); b = rand(2, 9); ans = a * b; text = `${a} × ${b}`; }
+    else { ans = rand(2, 9); b = rand(2, 9); a = ans * b; text = `${a} ÷ ${b}`; }
+
+    return { text: `${text} = ?`, answer: ans };
+  }
+
+  function renderBoard() {
+    if (!board) return;
+    board.innerHTML = '';
+    cells.forEach((cell, i) => {
+      const div = document.createElement('button');
+      div.className = 'aspect-square rounded-xl bg-white shadow-sm flex items-center justify-center text-5xl md:text-6xl font-black transition active:scale-95 ';
+      if (cell === null) {
+        div.className += 'hover:bg-cyan-50 cursor-pointer';
+        div.addEventListener('click', () => clickCell(i));
+      } else if (cell === 0) {
+        div.className += 'text-cyan-500';
+        div.textContent = '✕';
+      } else {
+        div.className += 'text-pink-500';
+        div.textContent = '○';
+      }
+      board?.appendChild(div);
+    });
+  }
+
+  function updateTurnIndicator() {
+    if (!turnIndicator) return;
+    const isP1 = currentPlayer === 0;
+    const playerName = isP1 ? 'Player 1' : (mode === 'cpu' ? 'Computer' : 'Player 2');
+    const symbol = isP1 ? '❌' : '⭕';
+    turnIndicator.textContent = `${playerName}'s turn (${symbol})`;
+    turnIndicator.className = `${isP1 ? 'bg-cyan-100 text-cyan-800' : 'bg-pink-100 text-pink-800'} rounded-xl p-2 text-center font-bold mb-3 transition-all`;
+
+    p1Card?.classList.toggle('ring-2', isP1);
+    p1Card?.classList.toggle('ring-cyan-500', isP1);
+    p2Card?.classList.toggle('ring-2', !isP1);
+    p2Card?.classList.toggle('ring-pink-500', !isP1);
+  }
+
+  function clickCell(index: number) {
+    if (!gameActive || cells[index] !== null || pendingCell !== -1) return;
+    if (mode === 'cpu' && currentPlayer === 1) return; // wait for CPU
+    showQuestion(index);
+  }
+
+  function showQuestion(cellIndex: number) {
+    pendingCell = cellIndex;
+    const q = genQuestion();
+    currentAnswer = q.answer;
+    if (questionText) questionText.textContent = q.text;
+    if (questionPlayer) {
+      const isP1 = currentPlayer === 0;
+      questionPlayer.textContent = `${isP1 ? 'Player 1 (❌)' : (mode === 'cpu' ? 'Computer (⭕)' : 'Player 2 (⭕)')} - solve fast!`;
+      questionPlayer.className = `text-sm font-bold mb-2 ${isP1 ? 'text-cyan-600' : 'text-pink-600'}`;
+    }
+    if (modalFeedback) modalFeedback.textContent = '';
+    modalAnswerInput.value = '';
+
+    questionModal?.classList.remove('hidden');
+    questionModal?.classList.add('flex');
+
+    // CPU mode and CPU's turn — auto-answer
+    if (mode === 'cpu' && currentPlayer === 1) {
+      timeLeft = 10;
+      const cpuDelay = difficulty === 'easy' ? 1500 : difficulty === 'medium' ? 1100 : 800;
+      // CPU correctness rate
+      const correctRate = difficulty === 'easy' ? 0.7 : difficulty === 'medium' ? 0.85 : 0.95;
+      setTimeout(() => {
+        const willAnswerCorrectly = Math.random() < correctRate;
+        if (willAnswerCorrectly) {
+          modalAnswerInput.value = String(currentAnswer);
+        } else {
+          modalAnswerInput.value = String(currentAnswer + (Math.random() < 0.5 ? 1 : -1));
+        }
+        submitAnswer();
+      }, cpuDelay);
+    } else {
+      modalAnswerInput.focus();
+      // Start timer
+      timeLeft = 10;
+      if (modalTimerVal) modalTimerVal.textContent = '10';
+      if (questionTimer) clearInterval(questionTimer);
+      const startTime = Date.now();
+      questionTimer = window.setInterval(() => {
+        const elapsed = (Date.now() - startTime) / 1000;
+        timeLeft = Math.max(0, 10 - elapsed);
+        if (modalTimerVal) modalTimerVal.textContent = String(Math.ceil(timeLeft));
+        if (timeLeft <= 0) {
+          if (questionTimer) clearInterval(questionTimer);
+          handleAnswer(false, true);
+        }
+      }, 100);
+    }
+  }
+
+  function submitAnswer() {
+    const val = parseInt(modalAnswerInput.value);
+    if (isNaN(val) && mode !== 'cpu') return;
+    if (questionTimer) clearInterval(questionTimer);
+    handleAnswer(val === currentAnswer, false);
+  }
+
+  function handleAnswer(isCorrect: boolean, isTimeout: boolean) {
+    if (isCorrect) {
+      beep(880, 0.1);
+      setTimeout(() => beep(1100, 0.1), 60);
+      cells[pendingCell] = currentPlayer;
+      if (modalFeedback) modalFeedback.innerHTML = '<span class="text-green-600">✓ Correct!</span>';
+
+      setTimeout(() => {
+        questionModal?.classList.add('hidden');
+        questionModal?.classList.remove('flex');
+        renderBoard();
+        pendingCell = -1;
+
+        const winner = checkWin();
+        if (winner !== -1) {
+          handleWin(winner);
+        } else if (cells.every(c => c !== null)) {
+          handleDraw();
+        } else {
+          currentPlayer = 1 - currentPlayer;
+          updateTurnIndicator();
+          // CPU's turn
+          if (mode === 'cpu' && currentPlayer === 1) {
+            setTimeout(() => cpuTurn(), 800);
+          }
+        }
+      }, 600);
+    } else {
+      beep(220, 0.2, 'sawtooth');
+      if (modalFeedback) {
+        modalFeedback.innerHTML = isTimeout
+          ? `<span class="text-red-600">⏰ Time's up! Was ${currentAnswer}</span>`
+          : `<span class="text-red-600">✗ Was ${currentAnswer}</span>`;
+      }
+
+      setTimeout(() => {
+        questionModal?.classList.add('hidden');
+        questionModal?.classList.remove('flex');
+        pendingCell = -1;
+        currentPlayer = 1 - currentPlayer;
+        updateTurnIndicator();
+        if (mode === 'cpu' && currentPlayer === 1) {
+          setTimeout(() => cpuTurn(), 800);
+        }
+      }, 1000);
+    }
+  }
+
+  function cpuTurn() {
+    if (!gameActive) return;
+    // Pick best move
+    const move = pickBestMove();
+    if (move === -1) return;
+    showQuestion(move);
+  }
+
+  function pickBestMove(): number {
+    // Try to win
+    for (let i = 0; i < 9; i++) {
+      if (cells[i] === null) {
+        cells[i] = 1;
+        if (checkWin() === 1) { cells[i] = null; return i; }
+        cells[i] = null;
+      }
+    }
+    // Block player
+    for (let i = 0; i < 9; i++) {
+      if (cells[i] === null) {
+        cells[i] = 0;
+        if (checkWin() === 0) { cells[i] = null; return i; }
+        cells[i] = null;
+      }
+    }
+    // Take center
+    if (cells[4] === null) return 4;
+    // Take a corner
+    const corners = [0, 2, 6, 8].filter(i => cells[i] === null);
+    if (corners.length > 0) return corners[rand(0, corners.length - 1)];
+    // Take any
+    const empty = cells.map((c, i) => c === null ? i : -1).filter(i => i !== -1);
+    return empty.length > 0 ? empty[rand(0, empty.length - 1)] : -1;
+  }
+
+  function checkWin(): number {
+    const lines = [
+      [0,1,2],[3,4,5],[6,7,8], // rows
+      [0,3,6],[1,4,7],[2,5,8], // columns
+      [0,4,8],[2,4,6],          // diagonals
+    ];
+    for (const [a, b, c] of lines) {
+      if (cells[a] !== null && cells[a] === cells[b] && cells[a] === cells[c]) {
+        return cells[a]!;
+      }
+    }
+    return -1;
+  }
+
+  function handleWin(winner: number) {
+    gameActive = false;
+    if (winner === 0) p1Score++; else p2Score++;
+    if (p1ScoreEl) p1ScoreEl.textContent = String(p1Score);
+    if (p2ScoreEl) p2ScoreEl.textContent = String(p2Score);
+    [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => beep(f, 0.2), i * 100));
+
+    setTimeout(() => {
+      const winnerName = winner === 0 ? 'Player 1' : (mode === 'cpu' ? 'Computer' : 'Player 2');
+      if (winTitle) {
+        winTitle.textContent = `${winnerName} Wins!`;
+        winTitle.className = `text-3xl font-black mb-4 ${winner === 0 ? 'text-cyan-600' : 'text-pink-600'}`;
+      }
+      if (winEmoji) winEmoji.textContent = '🏆';
+      winModal?.classList.remove('hidden');
+      winModal?.classList.add('flex');
+    }, 500);
+  }
+
+  function handleDraw() {
+    gameActive = false;
+    beep(440, 0.2);
+    setTimeout(() => {
+      if (winTitle) {
+        winTitle.textContent = "It's a Draw!";
+        winTitle.className = 'text-3xl font-black mb-4 text-slate-700';
+      }
+      if (winEmoji) winEmoji.textContent = '🤝';
+      winModal?.classList.remove('hidden');
+      winModal?.classList.add('flex');
+    }, 500);
+  }
+
+  function startGame() {
+    setupScreen?.classList.add('hidden');
+    winModal?.classList.add('hidden');
+    winModal?.classList.remove('flex');
+    gameScreen?.classList.remove('hidden');
+
+    if (p2Label) {
+      p2Label.textContent = mode === 'cpu' ? '🤖 Computer' : '⭕ Player 2';
+    }
+
+    cells = Array(9).fill(null);
+    currentPlayer = 0;
+    pendingCell = -1;
+    gameActive = true;
+    renderBoard();
+    updateTurnIndicator();
+  }
+
+  function resetMatch() {
+    p1Score = 0;
+    p2Score = 0;
+    if (p1ScoreEl) p1ScoreEl.textContent = '0';
+    if (p2ScoreEl) p2ScoreEl.textContent = '0';
+    startGame();
+  }
+
+  function showSetup() {
+    setupScreen?.classList.remove('hidden');
+    gameScreen?.classList.add('hidden');
+    winModal?.classList.add('hidden');
+    winModal?.classList.remove('flex');
+    p1Score = 0;
+    p2Score = 0;
+  }
+
+  document.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.mode-btn').forEach(b => {
+        b.removeAttribute('data-active');
+        b.classList.remove('border-cyan-500', 'bg-cyan-50');
+      });
+      btn.setAttribute('data-active', 'true');
+      btn.classList.add('border-cyan-500', 'bg-cyan-50');
+      mode = (btn as HTMLElement).dataset.mode || '2p';
+    });
+  });
+  document.querySelector('.mode-btn[data-active="true"]')?.classList.add('border-cyan-500', 'bg-cyan-50');
+
+  document.querySelectorAll('.diff-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.diff-btn').forEach(b => {
+        b.removeAttribute('data-active');
+        b.classList.remove('border-cyan-500', 'bg-cyan-50');
+      });
+      btn.setAttribute('data-active', 'true');
+      btn.classList.add('border-cyan-500', 'bg-cyan-50');
+      difficulty = (btn as HTMLElement).dataset.diff || 'easy';
+    });
+  });
+  document.querySelector('.diff-btn[data-active="true"]')?.classList.add('border-cyan-500', 'bg-cyan-50');
+
+  startBtn?.addEventListener('click', startGame);
+  resetMatchBtn?.addEventListener('click', resetMatch);
+  rematchBtn?.addEventListener('click', startGame);
+  winSettingsBtn?.addEventListener('click', showSetup);
+  modalSubmitBtn?.addEventListener('click', submitAnswer);
+  modalAnswerInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') submitAnswer();
+  });
+</script>

@@ -1,0 +1,799 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { useTranslations, getLangFromUrl } from '../../../i18n/ui';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const title = 'Tug of War Math — Epic 2 Player Math Battle | FunMath Tools';
+const description = 'Free 2-player math battle game. Solve equations to pull the rope. Animated characters, crowd cheering, and epic celebrations.';
+---
+
+<BaseLayout title={title} description={description}>
+  <nav class="text-sm text-slate-500 mb-4">
+    <a href="/" class="hover:text-brand-500">Home</a>
+    <span class="mx-2">/</span>
+    <a href="/#games" class="hover:text-brand-500">Games</a>
+    <span class="mx-2">/</span>
+    <span>Tug of War Math</span>
+  </nav>
+
+  <div class="text-center mb-6">
+    <div class="inline-flex w-20 h-20 rounded-3xl bg-gradient-to-br from-blue-600 to-red-600 items-center justify-center text-5xl mb-4">⚔️</div>
+    <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 mb-3">Tug of War Math</h1>
+    <p class="text-slate-600 max-w-xl mx-auto">Solve equations to pull the rope. First to win the round takes the championship!</p>
+  </div>
+
+  <!-- Setup screen -->
+  <div id="setupScreen" class="max-w-2xl mx-auto bg-white rounded-3xl shadow-xl p-6 md:p-8">
+    <h2 class="font-bold text-lg text-slate-800 mb-4 text-center">Choose Difficulty</h2>
+    <div class="grid grid-cols-3 gap-3 mb-6">
+      <button class="diff-btn p-4 rounded-2xl font-bold border-2 border-slate-200 hover:border-blue-500 transition" data-diff="easy" data-active="true">
+        <div class="text-2xl mb-1">🌱</div>
+        <div>Easy</div>
+        <div class="text-xs text-slate-500 font-normal">+, − (1-10)</div>
+      </button>
+      <button class="diff-btn p-4 rounded-2xl font-bold border-2 border-slate-200 hover:border-blue-500 transition" data-diff="medium">
+        <div class="text-2xl mb-1">🔥</div>
+        <div>Medium</div>
+        <div class="text-xs text-slate-500 font-normal">+, −, × (1-12)</div>
+      </button>
+      <button class="diff-btn p-4 rounded-2xl font-bold border-2 border-slate-200 hover:border-blue-500 transition" data-diff="hard">
+        <div class="text-2xl mb-1">⚡</div>
+        <div>Hard</div>
+        <div class="text-xs text-slate-500 font-normal">+, −, ×, ÷</div>
+      </button>
+    </div>
+
+    <h2 class="font-bold text-lg text-slate-800 mb-4 text-center">Win Score</h2>
+    <div class="grid grid-cols-3 gap-3 mb-6">
+      <button class="win-btn py-3 rounded-xl font-bold border-2 border-slate-200 hover:border-blue-500 transition" data-win="3">
+        Best of 3
+      </button>
+      <button class="win-btn py-3 rounded-xl font-bold border-2 border-slate-200 hover:border-blue-500 transition" data-win="5" data-active="true">
+        Best of 5
+      </button>
+      <button class="win-btn py-3 rounded-xl font-bold border-2 border-slate-200 hover:border-blue-500 transition" data-win="7">
+        Best of 7
+      </button>
+    </div>
+
+    <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 text-sm text-amber-800">
+      <strong>📱 How it works:</strong>
+      <ul class="mt-2 space-y-1 list-disc list-inside">
+        <li>🔵 Blue Team (left) vs 🔴 Red Team (right)</li>
+        <li>Each player solves their own equation</li>
+        <li>Correct answer = your team pulls!</li>
+        <li>Pull the rope to your side to win!</li>
+      </ul>
+    </div>
+
+    <button id="startBtn" class="w-full py-4 rounded-2xl font-bold text-lg bg-gradient-to-r from-blue-600 to-red-600 text-white shadow-lg active:scale-95 transition">
+      ⚔️ Start Battle
+    </button>
+  </div>
+
+  <!-- Game screen -->
+  <div id="gameScreen" class="hidden max-w-5xl mx-auto">
+    <!-- Score bar -->
+    <div class="bg-white rounded-2xl shadow p-3 mb-4 flex justify-between items-center">
+      <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-xl font-bold flex items-center gap-2">
+        <span>🔵 BLUE</span>
+        <span id="p1Score" class="text-2xl">0</span>
+      </div>
+      <div class="text-slate-500 text-sm font-bold">First to <span id="winScore">5</span></div>
+      <div class="bg-gradient-to-r from-red-600 to-red-700 text-white px-4 py-2 rounded-xl font-bold flex items-center gap-2">
+        <span id="p2Score" class="text-2xl">0</span>
+        <span>RED 🔴</span>
+      </div>
+    </div>
+
+    <!-- ANIMATION STAGE -->
+    <div class="relative rounded-3xl shadow-xl mb-4 overflow-hidden" style="background: linear-gradient(180deg, #87ceeb 0%, #fde68a 60%, #92400e 100%);">
+      <svg id="stage" viewBox="0 0 800 320" class="w-full h-auto" preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <!-- Gradients -->
+          <radialGradient id="sunGrad" cx="50%" cy="50%">
+            <stop offset="0%" stop-color="#fff7ed"/>
+            <stop offset="100%" stop-color="#fbbf24"/>
+          </radialGradient>
+          <linearGradient id="ropeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#fbbf24"/>
+            <stop offset="50%" stop-color="#d97706"/>
+            <stop offset="100%" stop-color="#78350f"/>
+          </linearGradient>
+          <linearGradient id="blueShirt" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#3b82f6"/>
+            <stop offset="100%" stop-color="#1e40af"/>
+          </linearGradient>
+          <linearGradient id="redShirt" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#ef4444"/>
+            <stop offset="100%" stop-color="#991b1b"/>
+          </linearGradient>
+          <radialGradient id="skin1">
+            <stop offset="0%" stop-color="#fde68a"/>
+            <stop offset="100%" stop-color="#d97706"/>
+          </radialGradient>
+          <radialGradient id="skin2">
+            <stop offset="0%" stop-color="#fed7aa"/>
+            <stop offset="100%" stop-color="#9a3412"/>
+          </radialGradient>
+        </defs>
+
+        <!-- ====== BACKGROUND SCENE ====== -->
+        <!-- Sun -->
+        <circle cx="700" cy="50" r="30" fill="url(#sunGrad)"/>
+        <g opacity="0.4">
+          <line x1="700" y1="10" x2="700" y2="0" stroke="#fbbf24" stroke-width="2"/>
+          <line x1="740" y1="50" x2="755" y2="50" stroke="#fbbf24" stroke-width="2"/>
+          <line x1="730" y1="20" x2="740" y2="10" stroke="#fbbf24" stroke-width="2"/>
+        </g>
+
+        <!-- Clouds -->
+        <g opacity="0.85">
+          <ellipse cx="120" cy="40" rx="40" ry="12" fill="white"/>
+          <ellipse cx="100" cy="35" rx="20" ry="10" fill="white"/>
+          <ellipse cx="140" cy="35" rx="22" ry="10" fill="white"/>
+          <ellipse cx="450" cy="30" rx="35" ry="10" fill="white"/>
+          <ellipse cx="430" cy="26" rx="18" ry="8" fill="white"/>
+        </g>
+
+        <!-- Distant mountains -->
+        <path d="M 0,180 L 80,120 L 150,150 L 230,100 L 320,140 L 400,110 L 500,140 L 600,100 L 700,135 L 800,115 L 800,200 L 0,200 Z" fill="#5b9bd5" opacity="0.4"/>
+        <path d="M 0,200 L 100,160 L 200,180 L 300,150 L 400,175 L 500,155 L 600,180 L 700,160 L 800,170 L 800,210 L 0,210 Z" fill="#3d5a80" opacity="0.5"/>
+
+        <!-- Ground/dirt area -->
+        <rect x="0" y="240" width="800" height="80" fill="#d4a574"/>
+        <rect x="0" y="240" width="800" height="6" fill="#92400e"/>
+        <!-- Ground texture dots -->
+        <g opacity="0.4">
+          <circle cx="100" cy="270" r="2" fill="#78350f"/>
+          <circle cx="250" cy="290" r="2" fill="#78350f"/>
+          <circle cx="400" cy="280" r="2" fill="#78350f"/>
+          <circle cx="600" cy="285" r="2" fill="#78350f"/>
+          <circle cx="720" cy="275" r="2" fill="#78350f"/>
+        </g>
+
+        <!-- Center marker (red flag) -->
+        <g>
+          <line x1="400" y1="180" x2="400" y2="240" stroke="#1e293b" stroke-width="3"/>
+          <path d="M 400,180 L 425,190 L 400,200 Z" fill="#dc2626"/>
+        </g>
+
+        <!-- ====== CROWD (background spectators) ====== -->
+        <g id="crowd" opacity="0.7">
+          <!-- Left crowd -->
+          <g transform="translate(30, 195)">
+            <circle cx="0" cy="10" r="6" fill="#1e40af"/>
+            <rect x="-5" y="14" width="10" height="15" fill="#1e40af" rx="2"/>
+          </g>
+          <g transform="translate(50, 200)">
+            <circle cx="0" cy="10" r="5" fill="#3b82f6"/>
+            <rect x="-4" y="14" width="8" height="13" fill="#3b82f6" rx="2"/>
+          </g>
+          <g transform="translate(75, 197)">
+            <circle cx="0" cy="10" r="6" fill="#2563eb"/>
+            <rect x="-5" y="14" width="10" height="15" fill="#2563eb" rx="2"/>
+          </g>
+          <!-- Right crowd -->
+          <g transform="translate(720, 197)">
+            <circle cx="0" cy="10" r="6" fill="#dc2626"/>
+            <rect x="-5" y="14" width="10" height="15" fill="#dc2626" rx="2"/>
+          </g>
+          <g transform="translate(745, 200)">
+            <circle cx="0" cy="10" r="5" fill="#ef4444"/>
+            <rect x="-4" y="14" width="8" height="13" fill="#ef4444" rx="2"/>
+          </g>
+          <g transform="translate(770, 197)">
+            <circle cx="0" cy="10" r="6" fill="#b91c1c"/>
+            <rect x="-5" y="14" width="10" height="15" fill="#b91c1c" rx="2"/>
+          </g>
+        </g>
+
+        <!-- ====== MAIN SCENE (rope + characters) - this group moves ====== -->
+        <g id="mainScene">
+          <!-- The ROPE (extends across full width) -->
+          <path id="rope" d="M -100,235 Q 200,233 400,235 Q 600,237 900,235" stroke="url(#ropeGrad)" stroke-width="6" fill="none" stroke-linecap="round"/>
+          <!-- Rope center marker (the red dot) -->
+          <circle id="ropeMarker" cx="400" cy="235" r="6" fill="#dc2626" stroke="white" stroke-width="2"/>
+
+          <!-- ============= PLAYER 1 (BLUE TEAM) - LEFT ============= -->
+          <g id="player1" transform="translate(180, 0)">
+            <!-- Shadow on ground -->
+            <ellipse cx="0" cy="295" rx="50" ry="6" fill="#000" opacity="0.25"/>
+
+            <!-- BACK LEG (firmly planted, leaning back) -->
+            <g>
+              <path d="M -28,225 L -38,290 L -28,290 L -20,225 Z" fill="#1e3a8a"/>
+              <ellipse cx="-32" cy="293" rx="14" ry="4" fill="#1e293b"/>
+              <!-- Sock detail -->
+              <rect x="-30" y="285" width="6" height="5" fill="white" opacity="0.8"/>
+            </g>
+
+            <!-- FRONT LEG (slightly bent) -->
+            <g>
+              <path d="M 0,225 L 5,290 L 15,290 L 12,225 Z" fill="#1e3a8a"/>
+              <ellipse cx="10" cy="293" rx="14" ry="4" fill="#1e293b"/>
+              <rect x="2" y="285" width="6" height="5" fill="white" opacity="0.8"/>
+            </g>
+
+            <!-- BODY (leaning back to pull) -->
+            <g id="p1Body" style="transform-origin: 0 230px;">
+              <!-- Torso (jersey) -->
+              <path d="M -25,230 L -22,170 L 22,170 L 25,230 Z" fill="url(#blueShirt)"/>
+              <!-- Jersey number "1" -->
+              <text x="0" y="205" text-anchor="middle" font-size="24" font-weight="900" fill="white" stroke="#1e3a8a" stroke-width="0.5">1</text>
+              <!-- Shoulders -->
+              <ellipse cx="-22" cy="170" rx="8" ry="6" fill="url(#blueShirt)"/>
+              <ellipse cx="22" cy="170" rx="8" ry="6" fill="url(#blueShirt)"/>
+
+              <!-- Arms - both gripping the rope (extended forward) -->
+              <g id="p1Arms">
+                <!-- Back arm (further) -->
+                <path d="M -22,175 Q 0,180 35,233" stroke="url(#skin1)" stroke-width="11" fill="none" stroke-linecap="round"/>
+                <!-- Muscle bicep highlight -->
+                <ellipse cx="-5" cy="180" rx="8" ry="4" fill="#fbbf24" opacity="0.3" transform="rotate(40 -5 180)"/>
+                <!-- Front arm -->
+                <path d="M 22,175 Q 25,185 40,233" stroke="url(#skin1)" stroke-width="11" fill="none" stroke-linecap="round"/>
+                <ellipse cx="30" cy="190" rx="6" ry="3" fill="#fbbf24" opacity="0.3"/>
+                <!-- Hands gripping rope -->
+                <circle cx="35" cy="233" r="7" fill="url(#skin1)" stroke="#92400e" stroke-width="0.5"/>
+                <circle cx="42" cy="234" r="7" fill="url(#skin1)" stroke="#92400e" stroke-width="0.5"/>
+                <!-- Fingers wrapping rope -->
+                <line x1="32" y1="230" x2="38" y2="230" stroke="#92400e" stroke-width="1.5"/>
+                <line x1="39" y1="231" x2="45" y2="231" stroke="#92400e" stroke-width="1.5"/>
+              </g>
+
+              <!-- Neck -->
+              <rect x="-5" y="160" width="10" height="12" fill="url(#skin1)"/>
+
+              <!-- HEAD -->
+              <g>
+                <!-- Head shape -->
+                <ellipse cx="0" cy="148" rx="18" ry="20" fill="url(#skin1)"/>
+                <!-- Hair (short) -->
+                <path d="M -16,138 Q -16,128 0,125 Q 16,128 16,138 L 16,145 L -16,145 Z" fill="#1e293b"/>
+                <!-- Ear -->
+                <ellipse cx="-17" cy="148" rx="3" ry="5" fill="url(#skin1)"/>
+                <!-- Headband -->
+                <rect x="-17" y="135" width="34" height="4" fill="#dc2626"/>
+
+                <!-- Eyes (focused, narrowed) -->
+                <g id="p1Face">
+                  <!-- Eyebrows (angry/determined) -->
+                  <line x1="-12" y1="142" x2="-5" y2="144" stroke="#1e293b" stroke-width="2.5" stroke-linecap="round"/>
+                  <line x1="5" y1="144" x2="12" y2="142" stroke="#1e293b" stroke-width="2.5" stroke-linecap="round"/>
+                  <!-- Eyes -->
+                  <ellipse cx="-7" cy="148" rx="2.5" ry="1.5" fill="white"/>
+                  <ellipse cx="7" cy="148" rx="2.5" ry="1.5" fill="white"/>
+                  <circle cx="-7" cy="148" r="1.2" fill="#1e293b"/>
+                  <circle cx="7" cy="148" r="1.2" fill="#1e293b"/>
+                  <!-- Mouth (gritted teeth showing effort) -->
+                  <rect x="-7" y="156" width="14" height="3" fill="white" stroke="#1e293b" stroke-width="0.7"/>
+                  <line x1="-3" y1="156" x2="-3" y2="159" stroke="#1e293b" stroke-width="0.5"/>
+                  <line x1="0" y1="156" x2="0" y2="159" stroke="#1e293b" stroke-width="0.5"/>
+                  <line x1="3" y1="156" x2="3" y2="159" stroke="#1e293b" stroke-width="0.5"/>
+                </g>
+              </g>
+
+              <!-- Sweat drops -->
+              <g id="p1Sweat" opacity="0">
+                <ellipse cx="-18" cy="138" rx="2" ry="3" fill="#60a5fa"/>
+                <ellipse cx="-15" cy="146" rx="1.5" ry="2.5" fill="#60a5fa"/>
+              </g>
+
+              <!-- Effort lines around head -->
+              <g id="p1Effort" opacity="0">
+                <line x1="-25" y1="135" x2="-30" y2="130" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"/>
+                <line x1="25" y1="135" x2="30" y2="130" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"/>
+                <line x1="-22" y1="125" x2="-25" y2="118" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"/>
+                <line x1="22" y1="125" x2="25" y2="118" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"/>
+              </g>
+            </g>
+          </g>
+
+          <!-- ============= PLAYER 2 (RED TEAM) - RIGHT ============= -->
+          <g id="player2" transform="translate(620, 0)">
+            <ellipse cx="0" cy="295" rx="50" ry="6" fill="#000" opacity="0.25"/>
+
+            <!-- BACK LEG (mirrored - back is on the right side) -->
+            <g>
+              <path d="M 28,225 L 38,290 L 28,290 L 20,225 Z" fill="#7f1d1d"/>
+              <ellipse cx="32" cy="293" rx="14" ry="4" fill="#1e293b"/>
+              <rect x="24" y="285" width="6" height="5" fill="white" opacity="0.8"/>
+            </g>
+
+            <!-- FRONT LEG -->
+            <g>
+              <path d="M 0,225 L -5,290 L -15,290 L -12,225 Z" fill="#7f1d1d"/>
+              <ellipse cx="-10" cy="293" rx="14" ry="4" fill="#1e293b"/>
+              <rect x="-8" y="285" width="6" height="5" fill="white" opacity="0.8"/>
+            </g>
+
+            <!-- BODY -->
+            <g id="p2Body" style="transform-origin: 0 230px;">
+              <path d="M -25,230 L -22,170 L 22,170 L 25,230 Z" fill="url(#redShirt)"/>
+              <text x="0" y="205" text-anchor="middle" font-size="24" font-weight="900" fill="white" stroke="#7f1d1d" stroke-width="0.5">2</text>
+              <ellipse cx="-22" cy="170" rx="8" ry="6" fill="url(#redShirt)"/>
+              <ellipse cx="22" cy="170" rx="8" ry="6" fill="url(#redShirt)"/>
+
+              <!-- Arms (mirrored - reaching to LEFT) -->
+              <g id="p2Arms">
+                <path d="M 22,175 Q 0,180 -35,233" stroke="url(#skin2)" stroke-width="11" fill="none" stroke-linecap="round"/>
+                <ellipse cx="5" cy="180" rx="8" ry="4" fill="#fbbf24" opacity="0.3" transform="rotate(-40 5 180)"/>
+                <path d="M -22,175 Q -25,185 -40,233" stroke="url(#skin2)" stroke-width="11" fill="none" stroke-linecap="round"/>
+                <ellipse cx="-30" cy="190" rx="6" ry="3" fill="#fbbf24" opacity="0.3"/>
+                <circle cx="-35" cy="233" r="7" fill="url(#skin2)" stroke="#92400e" stroke-width="0.5"/>
+                <circle cx="-42" cy="234" r="7" fill="url(#skin2)" stroke="#92400e" stroke-width="0.5"/>
+                <line x1="-32" y1="230" x2="-38" y2="230" stroke="#92400e" stroke-width="1.5"/>
+                <line x1="-39" y1="231" x2="-45" y2="231" stroke="#92400e" stroke-width="1.5"/>
+              </g>
+
+              <rect x="-5" y="160" width="10" height="12" fill="url(#skin2)"/>
+
+              <!-- HEAD -->
+              <g>
+                <ellipse cx="0" cy="148" rx="18" ry="20" fill="url(#skin2)"/>
+                <!-- Hair (different style) -->
+                <path d="M -16,140 Q -18,125 -8,123 Q 0,120 8,123 Q 18,125 16,140 L 16,145 Q 12,138 6,138 Q 0,135 -6,138 Q -12,138 -16,145 Z" fill="#7c2d12"/>
+                <ellipse cx="-17" cy="148" rx="3" ry="5" fill="url(#skin2)"/>
+                <rect x="-17" y="135" width="34" height="4" fill="#1e40af"/>
+
+                <g id="p2Face">
+                  <line x1="-12" y1="142" x2="-5" y2="144" stroke="#1e293b" stroke-width="2.5" stroke-linecap="round"/>
+                  <line x1="5" y1="144" x2="12" y2="142" stroke="#1e293b" stroke-width="2.5" stroke-linecap="round"/>
+                  <ellipse cx="-7" cy="148" rx="2.5" ry="1.5" fill="white"/>
+                  <ellipse cx="7" cy="148" rx="2.5" ry="1.5" fill="white"/>
+                  <circle cx="-7" cy="148" r="1.2" fill="#1e293b"/>
+                  <circle cx="7" cy="148" r="1.2" fill="#1e293b"/>
+                  <rect x="-7" y="156" width="14" height="3" fill="white" stroke="#1e293b" stroke-width="0.7"/>
+                  <line x1="-3" y1="156" x2="-3" y2="159" stroke="#1e293b" stroke-width="0.5"/>
+                  <line x1="0" y1="156" x2="0" y2="159" stroke="#1e293b" stroke-width="0.5"/>
+                  <line x1="3" y1="156" x2="3" y2="159" stroke="#1e293b" stroke-width="0.5"/>
+                </g>
+              </g>
+
+              <g id="p2Sweat" opacity="0">
+                <ellipse cx="18" cy="138" rx="2" ry="3" fill="#fca5a5"/>
+                <ellipse cx="15" cy="146" rx="1.5" ry="2.5" fill="#fca5a5"/>
+              </g>
+
+              <g id="p2Effort" opacity="0">
+                <line x1="-25" y1="135" x2="-30" y2="130" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"/>
+                <line x1="25" y1="135" x2="30" y2="130" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"/>
+                <line x1="-22" y1="125" x2="-25" y2="118" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"/>
+                <line x1="22" y1="125" x2="25" y2="118" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"/>
+              </g>
+            </g>
+          </g>
+
+          <!-- Dust clouds (visible during pull) -->
+          <g id="dustClouds" opacity="0">
+            <circle cx="180" cy="290" r="10" fill="#a8a29e" opacity="0.7"/>
+            <circle cx="200" cy="293" r="6" fill="#a8a29e" opacity="0.5"/>
+            <circle cx="160" cy="293" r="7" fill="#a8a29e" opacity="0.5"/>
+            <circle cx="620" cy="290" r="10" fill="#a8a29e" opacity="0.7"/>
+            <circle cx="640" cy="293" r="6" fill="#a8a29e" opacity="0.5"/>
+            <circle cx="600" cy="293" r="7" fill="#a8a29e" opacity="0.5"/>
+          </g>
+        </g>
+      </svg>
+    </div>
+
+    <!-- Players input panels -->
+    <div class="grid md:grid-cols-2 gap-4">
+      <!-- Player 1 -->
+      <div class="bg-white rounded-3xl shadow-xl p-5 border-t-8 border-blue-600">
+        <h3 class="font-bold text-blue-600 mb-3 text-center text-lg">🔵 Blue Team</h3>
+        <div id="q1" class="text-center text-3xl md:text-4xl font-black text-slate-900 mb-3 min-h-[2.5rem]">—</div>
+        <div id="d1" class="bg-slate-50 border-2 border-slate-200 rounded-xl py-3 text-center text-2xl font-bold mb-3 min-h-[3rem] transition-all">0</div>
+        <div class="grid grid-cols-3 gap-1.5">
+          <button class="key1 py-3 rounded-lg bg-slate-100 font-bold text-lg active:scale-95 hover:bg-slate-200" data-key="1">1</button>
+          <button class="key1 py-3 rounded-lg bg-slate-100 font-bold text-lg active:scale-95 hover:bg-slate-200" data-key="2">2</button>
+          <button class="key1 py-3 rounded-lg bg-slate-100 font-bold text-lg active:scale-95 hover:bg-slate-200" data-key="3">3</button>
+          <button class="key1 py-3 rounded-lg bg-slate-100 font-bold text-lg active:scale-95 hover:bg-slate-200" data-key="4">4</button>
+          <button class="key1 py-3 rounded-lg bg-slate-100 font-bold text-lg active:scale-95 hover:bg-slate-200" data-key="5">5</button>
+          <button class="key1 py-3 rounded-lg bg-slate-100 font-bold text-lg active:scale-95 hover:bg-slate-200" data-key="6">6</button>
+          <button class="key1 py-3 rounded-lg bg-slate-100 font-bold text-lg active:scale-95 hover:bg-slate-200" data-key="7">7</button>
+          <button class="key1 py-3 rounded-lg bg-slate-100 font-bold text-lg active:scale-95 hover:bg-slate-200" data-key="8">8</button>
+          <button class="key1 py-3 rounded-lg bg-slate-100 font-bold text-lg active:scale-95 hover:bg-slate-200" data-key="9">9</button>
+          <button class="key1 py-3 rounded-lg bg-orange-500 text-white font-bold text-lg active:scale-95" data-key="C">⌫</button>
+          <button class="key1 py-3 rounded-lg bg-slate-100 font-bold text-lg active:scale-95 hover:bg-slate-200" data-key="0">0</button>
+          <button class="key1 py-3 rounded-lg bg-blue-600 text-white font-bold text-lg active:scale-95" data-key="OK">PULL!</button>
+        </div>
+      </div>
+
+      <!-- Player 2 -->
+      <div class="bg-white rounded-3xl shadow-xl p-5 border-t-8 border-red-600">
+        <h3 class="font-bold text-red-600 mb-3 text-center text-lg">🔴 Red Team</h3>
+        <div id="q2" class="text-center text-3xl md:text-4xl font-black text-slate-900 mb-3 min-h-[2.5rem]">—</div>
+        <div id="d2" class="bg-slate-50 border-2 border-slate-200 rounded-xl py-3 text-center text-2xl font-bold mb-3 min-h-[3rem] transition-all">0</div>
+        <div class="grid grid-cols-3 gap-1.5">
+          <button class="key2 py-3 rounded-lg bg-slate-100 font-bold text-lg active:scale-95 hover:bg-slate-200" data-key="1">1</button>
+          <button class="key2 py-3 rounded-lg bg-slate-100 font-bold text-lg active:scale-95 hover:bg-slate-200" data-key="2">2</button>
+          <button class="key2 py-3 rounded-lg bg-slate-100 font-bold text-lg active:scale-95 hover:bg-slate-200" data-key="3">3</button>
+          <button class="key2 py-3 rounded-lg bg-slate-100 font-bold text-lg active:scale-95 hover:bg-slate-200" data-key="4">4</button>
+          <button class="key2 py-3 rounded-lg bg-slate-100 font-bold text-lg active:scale-95 hover:bg-slate-200" data-key="5">5</button>
+          <button class="key2 py-3 rounded-lg bg-slate-100 font-bold text-lg active:scale-95 hover:bg-slate-200" data-key="6">6</button>
+          <button class="key2 py-3 rounded-lg bg-slate-100 font-bold text-lg active:scale-95 hover:bg-slate-200" data-key="7">7</button>
+          <button class="key2 py-3 rounded-lg bg-slate-100 font-bold text-lg active:scale-95 hover:bg-slate-200" data-key="8">8</button>
+          <button class="key2 py-3 rounded-lg bg-slate-100 font-bold text-lg active:scale-95 hover:bg-slate-200" data-key="9">9</button>
+          <button class="key2 py-3 rounded-lg bg-orange-500 text-white font-bold text-lg active:scale-95" data-key="C">⌫</button>
+          <button class="key2 py-3 rounded-lg bg-slate-100 font-bold text-lg active:scale-95 hover:bg-slate-200" data-key="0">0</button>
+          <button class="key2 py-3 rounded-lg bg-red-600 text-white font-bold text-lg active:scale-95" data-key="OK">PULL!</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Win modal with confetti -->
+  <div id="winModal" class="fixed inset-0 bg-black/70 z-50 hidden items-center justify-center p-4">
+    <div id="confettiContainer" class="fixed inset-0 pointer-events-none overflow-hidden"></div>
+    <div class="bg-white rounded-3xl p-8 max-w-md w-full text-center relative z-10">
+      <div class="text-8xl mb-3" id="winEmoji">🏆</div>
+      <h2 id="winTitle" class="text-3xl font-black mb-2">Blue Team Wins!</h2>
+      <p id="winSubtitle" class="text-slate-600 mb-6">Champion of the rope!</p>
+      <div class="flex gap-3">
+        <button id="rematchBtn" class="flex-1 py-3 rounded-2xl font-bold bg-gradient-to-r from-blue-600 to-red-600 text-white shadow-lg active:scale-95 transition">
+          🔄 Rematch
+        </button>
+        <button id="changeBtn" class="flex-1 py-3 rounded-2xl font-bold bg-slate-200 text-slate-700 active:scale-95 transition">
+          ⚙️ Settings
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <section class="max-w-2xl mx-auto mt-16 prose prose-slate">
+    <h2 class="text-2xl font-bold mb-4">How to Play</h2>
+    <ol class="space-y-2 text-slate-700">
+      <li>Each player gets their own math problem.</li>
+      <li>Type the answer using the keypad.</li>
+      <li>Hit <strong>PULL!</strong> to submit.</li>
+      <li>Correct = your team pulls the rope toward you!</li>
+      <li>First team to reach the win score takes the championship.</li>
+    </ol>
+  </section>
+</BaseLayout>
+
+<style>
+  /* Display feedback */
+  .display-correct {
+    animation: pulseGreen 0.4s ease-out;
+  }
+  .display-wrong {
+    animation: shake 0.4s ease-out;
+  }
+  @keyframes pulseGreen {
+    0%, 100% { transform: scale(1); background-color: rgb(248, 250, 252); }
+    50% { transform: scale(1.1); background-color: rgb(187, 247, 208); border-color: rgb(34, 197, 94); }
+  }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-8px); background-color: rgb(254, 226, 226); }
+    75% { transform: translateX(8px); background-color: rgb(254, 226, 226); }
+  }
+
+  /* Pulling animation - body leans back hard */
+  @keyframes pullLeft {
+    0% { transform: rotate(0deg); }
+    30% { transform: rotate(-20deg) translateX(-3px); }
+    60% { transform: rotate(-10deg); }
+    100% { transform: rotate(0deg); }
+  }
+  @keyframes pullRight {
+    0% { transform: rotate(0deg); }
+    30% { transform: rotate(20deg) translateX(3px); }
+    60% { transform: rotate(10deg); }
+    100% { transform: rotate(0deg); }
+  }
+  .pulling-p1 #p1Body { animation: pullLeft 0.6s ease-out; }
+  .pulling-p2 #p2Body { animation: pullRight 0.6s ease-out; }
+
+  /* Sweat animation */
+  @keyframes sweatDrop {
+    0% { opacity: 0; transform: translateY(0); }
+    30% { opacity: 1; }
+    100% { opacity: 0; transform: translateY(20px); }
+  }
+  .pulling-p1 #p1Sweat,
+  .pulling-p2 #p2Sweat { animation: sweatDrop 0.7s ease-out; }
+
+  /* Effort lines around head */
+  @keyframes effortFlash {
+    0%, 100% { opacity: 0; }
+    50% { opacity: 1; }
+  }
+  .pulling-p1 #p1Effort,
+  .pulling-p2 #p2Effort { animation: effortFlash 0.5s ease-out; }
+
+  /* Crowd bouncing */
+  @keyframes crowdBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+  }
+  #crowd g { animation: crowdBounce 0.8s ease-in-out infinite; }
+  #crowd g:nth-child(2) { animation-delay: 0.1s; }
+  #crowd g:nth-child(3) { animation-delay: 0.2s; }
+  #crowd g:nth-child(4) { animation-delay: 0.15s; }
+  #crowd g:nth-child(5) { animation-delay: 0.25s; }
+  #crowd g:nth-child(6) { animation-delay: 0.3s; }
+
+  /* Confetti */
+  .confetti {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    pointer-events: none;
+  }
+  @keyframes confettiFall {
+    0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+  }
+
+  #mainScene {
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+</style>
+
+<script>
+  const setupScreen = document.getElementById('setupScreen');
+  const gameScreen = document.getElementById('gameScreen');
+  const winModal = document.getElementById('winModal');
+  const confettiContainer = document.getElementById('confettiContainer');
+  const startBtn = document.getElementById('startBtn');
+  const rematchBtn = document.getElementById('rematchBtn');
+  const changeBtn = document.getElementById('changeBtn');
+  const mainScene = document.getElementById('mainScene');
+  const stage = document.getElementById('stage');
+  const winTitle = document.getElementById('winTitle');
+  const winSubtitle = document.getElementById('winSubtitle');
+  const winEmoji = document.getElementById('winEmoji');
+  const winScoreEl = document.getElementById('winScore');
+
+  let difficulty = 'easy';
+  let winScore = 5;
+  let p1Score = 0;
+  let p2Score = 0;
+  let ropePosition = 0;
+
+  let q1 = { text: '', answer: 0 };
+  let q2 = { text: '', answer: 0 };
+  let input1 = '';
+  let input2 = '';
+  let gameActive = false;
+
+  function beep(freq: number, dur = 0.08, type: OscillatorType = 'sine') {
+    try {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = type;
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.1, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(); osc.stop(ctx.currentTime + dur);
+    } catch (e) {}
+  }
+
+  function rand(min: number, max: number): number {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  function genQ(): { text: string; answer: number } {
+    const ops = difficulty === 'easy' ? ['+', '−'] : difficulty === 'medium' ? ['+', '−', '×'] : ['+', '−', '×', '÷'];
+    const op = ops[rand(0, ops.length - 1)];
+    const max = difficulty === 'easy' ? 10 : 12;
+    let a, b, ans, text;
+    if (op === '+') { a = rand(1, max); b = rand(1, max); ans = a + b; text = `${a} + ${b}`; }
+    else if (op === '−') { a = rand(2, max); b = rand(1, a - 1); ans = a - b; text = `${a} − ${b}`; }
+    else if (op === '×') { a = rand(2, max); b = rand(2, max); ans = a * b; text = `${a} × ${b}`; }
+    else { ans = rand(2, max); b = rand(2, max); a = ans * b; text = `${a} ÷ ${b}`; }
+    return { text: `${text} = ?`, answer: ans };
+  }
+
+  function render() {
+    document.getElementById('p1Score')!.textContent = String(p1Score);
+    document.getElementById('p2Score')!.textContent = String(p2Score);
+    document.getElementById('q1')!.textContent = q1.text;
+    document.getElementById('q2')!.textContent = q2.text;
+    document.getElementById('d1')!.textContent = input1 || '0';
+    document.getElementById('d2')!.textContent = input2 || '0';
+
+    // Move scene based on rope position
+    if (mainScene) {
+      const offset = ropePosition * 30;
+      mainScene.setAttribute('transform', `translate(${offset}, 0)`);
+    }
+    if (winScoreEl) winScoreEl.textContent = String(winScore);
+  }
+
+  function flashDisplay(player: number, isCorrect: boolean) {
+    const el = document.getElementById(`d${player}`);
+    if (!el) return;
+    el.classList.remove('display-correct', 'display-wrong');
+    void (el as HTMLElement).offsetWidth;
+    el.classList.add(isCorrect ? 'display-correct' : 'display-wrong');
+  }
+
+  function animatePull(player: number) {
+    if (!stage) return;
+    const cls = `pulling-p${player}`;
+    stage.classList.remove('pulling-p1', 'pulling-p2');
+    void stage.offsetWidth;
+    stage.classList.add(cls);
+
+    const dust = document.getElementById('dustClouds');
+    if (dust) {
+      dust.style.opacity = '1';
+      dust.style.transition = 'opacity 0.3s';
+      setTimeout(() => { dust.style.opacity = '0'; }, 500);
+    }
+
+    setTimeout(() => stage.classList.remove(cls), 700);
+  }
+
+  function handleKey(player: number, key: string) {
+    if (!gameActive) return;
+    beep(500, 0.04);
+    let val = player === 1 ? input1 : input2;
+
+    if (key === 'C') {
+      val = val.slice(0, -1);
+    } else if (key === 'OK') {
+      submitAnswer(player);
+      return;
+    } else if (val.length < 4) {
+      val += key;
+    }
+
+    if (player === 1) input1 = val; else input2 = val;
+    render();
+  }
+
+  function submitAnswer(player: number) {
+    const q = player === 1 ? q1 : q2;
+    const inputVal = player === 1 ? input1 : input2;
+    if (inputVal === '') return;
+    const userAns = parseInt(inputVal);
+
+    if (userAns === q.answer) {
+      beep(880, 0.1);
+      setTimeout(() => beep(1100, 0.1), 60);
+      flashDisplay(player, true);
+      animatePull(player);
+
+      if (player === 1) {
+        p1Score++;
+        ropePosition = Math.max(-winScore, ropePosition - 1);
+        input1 = '';
+        q1 = genQ();
+      } else {
+        p2Score++;
+        ropePosition = Math.min(winScore, ropePosition + 1);
+        input2 = '';
+        q2 = genQ();
+      }
+      render();
+
+      if (p1Score >= winScore) showWin(1);
+      else if (p2Score >= winScore) showWin(2);
+    } else {
+      beep(220, 0.15, 'sawtooth');
+      flashDisplay(player, false);
+      if (player === 1) input1 = '';
+      else input2 = '';
+      setTimeout(render, 400);
+    }
+  }
+
+  function spawnConfetti() {
+    if (!confettiContainer) return;
+    confettiContainer.innerHTML = '';
+    const colors = ['#fbbf24', '#dc2626', '#2563eb', '#22c55e', '#a855f7', '#ec4899', '#06b6d4'];
+    for (let i = 0; i < 100; i++) {
+      const c = document.createElement('div');
+      c.className = 'confetti';
+      c.style.left = `${Math.random() * 100}%`;
+      c.style.top = '-20px';
+      c.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+      c.style.animation = `confettiFall ${2 + Math.random() * 2}s linear ${Math.random() * 0.5}s forwards`;
+      c.style.borderRadius = Math.random() < 0.5 ? '50%' : '0';
+      c.style.transform = `rotate(${Math.random() * 360}deg)`;
+      confettiContainer.appendChild(c);
+    }
+    setTimeout(() => { if (confettiContainer) confettiContainer.innerHTML = ''; }, 4500);
+  }
+
+  function showWin(winner: number) {
+    gameActive = false;
+    [523, 659, 784, 1046, 1318].forEach((f, i) => setTimeout(() => beep(f, 0.25), i * 120));
+
+    if (winTitle) {
+      winTitle.textContent = `${winner === 1 ? '🔵 Blue Team' : '🔴 Red Team'} WINS!`;
+      winTitle.className = `text-3xl font-black mb-2 ${winner === 1 ? 'text-blue-600' : 'text-red-600'}`;
+    }
+    if (winSubtitle) winSubtitle.textContent = `Final score: ${p1Score} - ${p2Score}`;
+    if (winEmoji) winEmoji.textContent = '🏆';
+
+    setTimeout(() => {
+      winModal?.classList.remove('hidden');
+      winModal?.classList.add('flex');
+      spawnConfetti();
+    }, 800);
+  }
+
+  function startGame() {
+    p1Score = 0;
+    p2Score = 0;
+    ropePosition = 0;
+    input1 = '';
+    input2 = '';
+    q1 = genQ();
+    q2 = genQ();
+    gameActive = true;
+    setupScreen?.classList.add('hidden');
+    winModal?.classList.add('hidden');
+    winModal?.classList.remove('flex');
+    gameScreen?.classList.remove('hidden');
+    if (confettiContainer) confettiContainer.innerHTML = '';
+    render();
+  }
+
+  function showSetup() {
+    setupScreen?.classList.remove('hidden');
+    gameScreen?.classList.add('hidden');
+    winModal?.classList.add('hidden');
+    winModal?.classList.remove('flex');
+    if (confettiContainer) confettiContainer.innerHTML = '';
+  }
+
+  document.querySelectorAll('.diff-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.diff-btn').forEach(b => {
+        b.removeAttribute('data-active');
+        b.classList.remove('border-blue-500', 'bg-blue-50');
+        b.classList.add('border-slate-200');
+      });
+      btn.setAttribute('data-active', 'true');
+      btn.classList.remove('border-slate-200');
+      btn.classList.add('border-blue-500', 'bg-blue-50');
+      difficulty = (btn as HTMLElement).dataset.diff || 'easy';
+    });
+  });
+  const activeDiff = document.querySelector('.diff-btn[data-active="true"]');
+  if (activeDiff) {
+    activeDiff.classList.remove('border-slate-200');
+    activeDiff.classList.add('border-blue-500', 'bg-blue-50');
+  }
+
+  document.querySelectorAll('.win-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.win-btn').forEach(b => {
+        b.removeAttribute('data-active');
+        b.classList.remove('border-blue-500', 'bg-blue-50');
+        b.classList.add('border-slate-200');
+      });
+      btn.setAttribute('data-active', 'true');
+      btn.classList.remove('border-slate-200');
+      btn.classList.add('border-blue-500', 'bg-blue-50');
+      winScore = parseInt((btn as HTMLElement).dataset.win || '5');
+    });
+  });
+  const activeWin = document.querySelector('.win-btn[data-active="true"]');
+  if (activeWin) {
+    activeWin.classList.remove('border-slate-200');
+    activeWin.classList.add('border-blue-500', 'bg-blue-50');
+  }
+
+  document.querySelectorAll('.key1').forEach(btn => {
+    btn.addEventListener('click', () => handleKey(1, (btn as HTMLElement).dataset.key || ''));
+  });
+  document.querySelectorAll('.key2').forEach(btn => {
+    btn.addEventListener('click', () => handleKey(2, (btn as HTMLElement).dataset.key || ''));
+  });
+
+  startBtn?.addEventListener('click', startGame);
+  rematchBtn?.addEventListener('click', startGame);
+  changeBtn?.addEventListener('click', showSetup);
+</script>

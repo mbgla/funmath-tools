@@ -1,0 +1,383 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { useTranslations, getLangFromUrl } from '../../i18n/ui';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const title = 'Quick Math Challenge — 60 Second Math Race | FunMath Tools';
+const description = 'Free online math challenge. Solve as many addition, subtraction, multiplication, and division problems as you can in 60 seconds. Perfect for brain training.';
+---
+
+<BaseLayout title={title} description={description}>
+  <nav class="text-sm text-slate-500 mb-4">
+    <a href="/" class="hover:text-brand-500">Home</a>
+    <span class="mx-2">/</span>
+    <a href="/#games" class="hover:text-brand-500">Games</a>
+    <span class="mx-2">/</span>
+    <span>Quick Math Challenge</span>
+  </nav>
+
+  <div class="text-center mb-8">
+    <div class="inline-flex w-20 h-20 rounded-3xl bg-gradient-to-br from-amber-400 to-orange-600 items-center justify-center text-5xl mb-4">⚡</div>
+    <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 mb-3">Quick Math Challenge</h1>
+    <p class="text-slate-600 max-w-xl mx-auto">Solve as many problems as you can in 60 seconds. How fast is your brain?</p>
+  </div>
+
+  <div class="max-w-2xl mx-auto bg-white rounded-3xl shadow-xl p-6 md:p-8">
+
+    <!-- Setup screen -->
+    <div id="setupScreen">
+      <h2 class="font-bold text-lg text-slate-800 mb-4 text-center">Choose Difficulty</h2>
+      <div class="grid grid-cols-3 gap-3 mb-6">
+        <button class="diff-btn p-4 rounded-2xl font-bold border-2 border-slate-200 hover:border-orange-500 transition" data-diff="easy" data-active="true">
+          <div class="text-2xl mb-1">🌱</div>
+          <div>Easy</div>
+          <div class="text-xs text-slate-500 font-normal">+, − (1-20)</div>
+        </button>
+        <button class="diff-btn p-4 rounded-2xl font-bold border-2 border-slate-200 hover:border-orange-500 transition" data-diff="medium">
+          <div class="text-2xl mb-1">🔥</div>
+          <div>Medium</div>
+          <div class="text-xs text-slate-500 font-normal">+, −, × (1-12)</div>
+        </button>
+        <button class="diff-btn p-4 rounded-2xl font-bold border-2 border-slate-200 hover:border-orange-500 transition" data-diff="hard">
+          <div class="text-2xl mb-1">⚡</div>
+          <div>Hard</div>
+          <div class="text-xs text-slate-500 font-normal">+, −, ×, ÷ (1-15)</div>
+        </button>
+      </div>
+
+      <h2 class="font-bold text-lg text-slate-800 mb-4 text-center">Choose Duration</h2>
+      <div class="grid grid-cols-3 gap-3 mb-6">
+        <button class="time-btn py-3 rounded-xl font-bold border-2 border-slate-200 hover:border-orange-500 transition" data-time="30">30s</button>
+        <button class="time-btn py-3 rounded-xl font-bold border-2 border-slate-200 hover:border-orange-500 transition" data-time="60" data-active="true">60s</button>
+        <button class="time-btn py-3 rounded-xl font-bold border-2 border-slate-200 hover:border-orange-500 transition" data-time="120">2 min</button>
+      </div>
+
+      <button id="startBtn" class="w-full py-4 rounded-2xl font-bold text-lg bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg shadow-orange-500/30 active:scale-95 transition">
+        ⚡ Start Challenge
+      </button>
+
+      <div id="bestScore" class="mt-4 text-center text-sm text-slate-500"></div>
+    </div>
+
+    <!-- Game screen -->
+    <div id="gameScreen" class="hidden">
+      <div class="flex justify-between items-center mb-4 font-semibold">
+        <div class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
+          ✓ <span id="correctCount">0</span>
+        </div>
+        <div id="timerDisplay" class="bg-orange-100 text-orange-700 px-4 py-2 rounded-full font-black text-lg">
+          ⏱ <span id="timeLeft">60</span>s
+        </div>
+        <div class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm">
+          ✗ <span id="wrongCount">0</span>
+        </div>
+      </div>
+
+      <div class="h-2 bg-slate-100 rounded-full overflow-hidden mb-8">
+        <div id="progressBar" class="h-full bg-gradient-to-r from-amber-500 to-orange-600 transition-all duration-100" style="width:100%"></div>
+      </div>
+
+      <div class="text-center py-6">
+        <div id="question" class="text-5xl md:text-7xl font-black text-slate-900 mb-2">? + ?</div>
+        <div class="text-slate-400 text-lg">= ?</div>
+      </div>
+
+      <div class="flex gap-2 mb-3">
+        <input
+          type="number"
+          id="answerInput"
+          inputmode="numeric"
+          autocomplete="off"
+          class="flex-1 px-4 py-4 border-2 border-slate-200 rounded-xl text-center text-3xl font-black focus:border-orange-500 focus:outline-none"
+          placeholder="?"
+        />
+        <button id="submitBtn" class="px-6 rounded-xl font-bold bg-orange-500 text-white text-2xl hover:bg-orange-600 active:scale-95 transition">
+          ✓
+        </button>
+      </div>
+      <div id="feedback" class="text-center font-bold text-lg h-7"></div>
+    </div>
+
+    <!-- Results screen -->
+    <div id="resultsScreen" class="hidden text-center">
+      <div class="text-6xl mb-3" id="resultEmoji">🎉</div>
+      <h2 class="text-2xl font-black mb-2">Time's Up!</h2>
+      <div class="text-7xl font-black bg-gradient-to-br from-amber-500 to-orange-600 bg-clip-text text-transparent mb-2" id="finalScore">0</div>
+      <div class="text-slate-500 mb-1">Correct Answers</div>
+      <div id="resultStats" class="text-sm text-slate-600 mb-2">—</div>
+      <div id="newBest" class="hidden text-amber-600 font-bold mb-4">🏆 New Best Score!</div>
+      <div id="resultMsg" class="text-slate-600 mb-6">—</div>
+      <div class="flex gap-3">
+        <button id="againBtn" class="flex-1 py-3 rounded-2xl font-bold bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg active:scale-95 transition">
+          🔄 Play Again
+        </button>
+        <button id="changeBtn" class="flex-1 py-3 rounded-2xl font-bold bg-slate-200 text-slate-700 active:scale-95 transition">
+          ⚙️ Change Settings
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEO content -->
+  <section class="max-w-2xl mx-auto mt-16 prose prose-slate">
+    <h2 class="text-2xl font-bold mb-4">How to Play</h2>
+    <ol class="space-y-2 text-slate-700">
+      <li>Choose a difficulty level (Easy, Medium, or Hard).</li>
+      <li>Pick how long you want to play (30s, 60s, or 2 minutes).</li>
+      <li>Type the answer to each question and press Enter.</li>
+      <li>Get as many correct answers as possible before time runs out!</li>
+    </ol>
+    <h2 class="text-2xl font-bold mt-8 mb-4">Why Play Math Challenges?</h2>
+    <ul class="space-y-2 text-slate-700">
+      <li><strong>Mental agility:</strong> Practice quick calculation under pressure.</li>
+      <li><strong>Brain training:</strong> Boost focus and working memory.</li>
+      <li><strong>Track progress:</strong> Beat your best score and improve over time.</li>
+      <li><strong>Classroom ready:</strong> Perfect warm-up activity for math classes.</li>
+    </ul>
+  </section>
+</BaseLayout>
+
+<script>
+  const setupScreen = document.getElementById('setupScreen');
+  const gameScreen = document.getElementById('gameScreen');
+  const resultsScreen = document.getElementById('resultsScreen');
+  const startBtn = document.getElementById('startBtn');
+  const submitBtn = document.getElementById('submitBtn');
+  const againBtn = document.getElementById('againBtn');
+  const changeBtn = document.getElementById('changeBtn');
+  const answerInput = document.getElementById('answerInput') as HTMLInputElement;
+  const questionEl = document.getElementById('question');
+  const feedbackEl = document.getElementById('feedback');
+  const correctCountEl = document.getElementById('correctCount');
+  const wrongCountEl = document.getElementById('wrongCount');
+  const timeLeftEl = document.getElementById('timeLeft');
+  const progressBar = document.getElementById('progressBar');
+  const finalScoreEl = document.getElementById('finalScore');
+  const resultEmoji = document.getElementById('resultEmoji');
+  const resultMsg = document.getElementById('resultMsg');
+  const resultStats = document.getElementById('resultStats');
+  const bestScoreEl = document.getElementById('bestScore');
+  const newBestEl = document.getElementById('newBest');
+  const timerDisplay = document.getElementById('timerDisplay');
+
+  let difficulty = 'easy';
+  let duration = 60;
+  let timeRemaining = 60;
+  let correct = 0;
+  let wrong = 0;
+  let currentAnswer = 0;
+  let timerId: number | null = null;
+
+  function beep(freq: number, dur = 0.08, type: OscillatorType = 'sine') {
+    try {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = type;
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.12, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(); osc.stop(ctx.currentTime + dur);
+    } catch (e) {}
+  }
+
+  function rand(min: number, max: number): number {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  function genQuestion() {
+    let a: number, b: number, ans: number, op: string, text: string;
+    const ops = difficulty === 'easy' ? ['+', '−'] : difficulty === 'medium' ? ['+', '−', '×'] : ['+', '−', '×', '÷'];
+    op = ops[rand(0, ops.length - 1)];
+    const max = difficulty === 'easy' ? 20 : difficulty === 'medium' ? 12 : 15;
+
+    if (op === '+') {
+      a = rand(1, max);
+      b = rand(1, max);
+      ans = a + b;
+      text = `${a} + ${b}`;
+    } else if (op === '−') {
+      a = rand(1, max);
+      b = rand(1, a);
+      ans = a - b;
+      text = `${a} − ${b}`;
+    } else if (op === '×') {
+      a = rand(1, max);
+      b = rand(1, max);
+      ans = a * b;
+      text = `${a} × ${b}`;
+    } else {
+      ans = rand(1, max);
+      b = rand(2, max);
+      a = ans * b;
+      text = `${a} ÷ ${b}`;
+    }
+
+    if (questionEl) questionEl.textContent = text;
+    currentAnswer = ans;
+    answerInput.value = '';
+    answerInput.focus();
+  }
+
+  function submitAnswer() {
+    const val = parseInt(answerInput.value);
+    if (isNaN(val)) return;
+
+    if (val === currentAnswer) {
+      correct++;
+      beep(880, 0.06);
+      if (correctCountEl) correctCountEl.textContent = String(correct);
+      if (feedbackEl) feedbackEl.innerHTML = '<span class="text-green-600">✓ Correct!</span>';
+    } else {
+      wrong++;
+      beep(220, 0.15, 'sawtooth');
+      if (wrongCountEl) wrongCountEl.textContent = String(wrong);
+      if (feedbackEl) feedbackEl.innerHTML = `<span class="text-red-600">✗ Was ${currentAnswer}</span>`;
+    }
+
+    setTimeout(() => {
+      if (feedbackEl) feedbackEl.textContent = '';
+      genQuestion();
+    }, 350);
+  }
+
+  function startGame() {
+    setupScreen?.classList.add('hidden');
+    resultsScreen?.classList.add('hidden');
+    gameScreen?.classList.remove('hidden');
+
+    correct = 0;
+    wrong = 0;
+    timeRemaining = duration;
+    if (correctCountEl) correctCountEl.textContent = '0';
+    if (wrongCountEl) wrongCountEl.textContent = '0';
+    if (timeLeftEl) timeLeftEl.textContent = String(duration);
+    timerDisplay?.classList.remove('bg-red-100', 'text-red-700');
+    timerDisplay?.classList.add('bg-orange-100', 'text-orange-700');
+
+    genQuestion();
+
+    if (timerId) clearInterval(timerId);
+    const startTime = Date.now();
+    timerId = window.setInterval(() => {
+      const elapsed = (Date.now() - startTime) / 1000;
+      timeRemaining = Math.max(0, duration - elapsed);
+      if (timeLeftEl) timeLeftEl.textContent = String(Math.ceil(timeRemaining));
+      if (progressBar) progressBar.style.width = `${(timeRemaining / duration) * 100}%`;
+
+      if (timeRemaining <= 5 && timeRemaining > 0) {
+        timerDisplay?.classList.remove('bg-orange-100', 'text-orange-700');
+        timerDisplay?.classList.add('bg-red-100', 'text-red-700');
+      }
+
+      if (timeRemaining <= 0) {
+        endGame();
+      }
+    }, 100);
+  }
+
+  function endGame() {
+    if (timerId) clearInterval(timerId);
+    gameScreen?.classList.add('hidden');
+    resultsScreen?.classList.remove('hidden');
+
+    if (finalScoreEl) finalScoreEl.textContent = String(correct);
+    if (resultStats) {
+      const total = correct + wrong;
+      const acc = total > 0 ? Math.round((correct / total) * 100) : 0;
+      resultStats.textContent = `${correct} correct · ${wrong} wrong · ${acc}% accuracy`;
+    }
+
+    // Best score
+    const key = `qmc_best_${difficulty}_${duration}`;
+    const prevBest = parseInt(localStorage.getItem(key) || '0');
+    if (correct > prevBest) {
+      localStorage.setItem(key, String(correct));
+      newBestEl?.classList.remove('hidden');
+      [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => beep(f, 0.15), i * 100));
+    } else {
+      newBestEl?.classList.add('hidden');
+    }
+
+    if (resultEmoji && resultMsg) {
+      if (correct >= 30) { resultEmoji.textContent = '🏆'; resultMsg.textContent = 'Math machine! Incredible speed!'; }
+      else if (correct >= 20) { resultEmoji.textContent = '⚡'; resultMsg.textContent = 'Lightning fast!'; }
+      else if (correct >= 10) { resultEmoji.textContent = '👍'; resultMsg.textContent = 'Good pace! Keep practicing.'; }
+      else { resultEmoji.textContent = '📚'; resultMsg.textContent = 'Practice makes perfect!'; }
+    }
+  }
+
+  function showSetup() {
+    setupScreen?.classList.remove('hidden');
+    gameScreen?.classList.add('hidden');
+    resultsScreen?.classList.add('hidden');
+    showBestScore();
+  }
+
+  function showBestScore() {
+    const key = `qmc_best_${difficulty}_${duration}`;
+    const best = parseInt(localStorage.getItem(key) || '0');
+    if (bestScoreEl) {
+      bestScoreEl.textContent = best > 0 ? `🏆 Best: ${best} (${difficulty}, ${duration}s)` : '';
+    }
+  }
+
+  // Difficulty buttons
+  document.querySelectorAll('.diff-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      // Remove active from ALL difficulty buttons
+      document.querySelectorAll('.diff-btn').forEach(b => {
+        b.removeAttribute('data-active');
+        b.classList.remove('border-orange-500', 'bg-orange-50');
+        b.classList.add('border-slate-200');
+      });
+      // Add active to clicked button
+      btn.setAttribute('data-active', 'true');
+      btn.classList.remove('border-slate-200');
+      btn.classList.add('border-orange-500', 'bg-orange-50');
+      difficulty = (btn as HTMLElement).dataset.diff || 'easy';
+      console.log('Difficulty set to:', difficulty);
+      showBestScore();
+    });
+  });
+
+  document.querySelectorAll('.time-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.time-btn').forEach(b => {
+        b.removeAttribute('data-active');
+        b.classList.remove('border-orange-500', 'bg-orange-50');
+        b.classList.add('border-slate-200');
+      });
+      btn.setAttribute('data-active', 'true');
+      btn.classList.remove('border-slate-200');
+      btn.classList.add('border-orange-500', 'bg-orange-50');
+      duration = parseInt((btn as HTMLElement).dataset.time || '60');
+      console.log('Duration set to:', duration);
+      showBestScore();
+    });
+  });
+
+  // Initialize: mark default active buttons visually
+  const activeDiff = document.querySelector('.diff-btn[data-active="true"]');
+  if (activeDiff) {
+    activeDiff.classList.remove('border-slate-200');
+    activeDiff.classList.add('border-orange-500', 'bg-orange-50');
+  }
+  const activeTime = document.querySelector('.time-btn[data-active="true"]');
+  if (activeTime) {
+    activeTime.classList.remove('border-slate-200');
+    activeTime.classList.add('border-orange-500', 'bg-orange-50');
+  }
+
+  startBtn?.addEventListener('click', startGame);
+  submitBtn?.addEventListener('click', submitAnswer);
+  againBtn?.addEventListener('click', startGame);
+  changeBtn?.addEventListener('click', showSetup);
+  answerInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') submitAnswer();
+  });
+
+  showBestScore();
+</script>

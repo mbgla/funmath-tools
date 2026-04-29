@@ -1,0 +1,207 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { useTranslations, getLangFromUrl } from '../../../i18n/ui';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const title = `${t('tool.spinner.name' as any)} — FunMath Tools`;
+const description = t('tool.spinner.long' as any);
+---
+
+<BaseLayout title={title} description={description}>
+  <nav class="text-sm text-slate-500 mb-4">
+    <a href="/" class="hover:text-brand-500">{t('nav.home' as any)}</a>
+    <span class="mx-2">/</span>
+    <span>{t('tool.spinner.name' as any)}</span>
+  </nav>
+
+  <div class="text-center mb-8">
+    <div class="inline-flex w-20 h-20 rounded-3xl bg-gradient-to-br from-pink-400 to-purple-600 items-center justify-center text-5xl mb-4">🎡</div>
+    <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 mb-3">{t('tool.spinner.name' as any)}</h1>
+    <p class="text-slate-600 max-w-xl mx-auto">{t('tool.spinner.long' as any)}</p>
+  </div>
+
+  <div class="max-w-4xl mx-auto grid md:grid-cols-2 gap-6">
+    
+    <!-- Wheel -->
+    <div class="bg-white rounded-3xl shadow-xl p-6 flex flex-col items-center">
+      <div class="relative w-72 h-72 md:w-80 md:h-80">
+        <!-- Pointer -->
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-2 z-10 text-4xl" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+          🔻
+        </div>
+        <!-- SVG Wheel -->
+        <svg id="wheel" viewBox="0 0 200 200" class="w-full h-full transition-transform duration-[4000ms] ease-out" style="transform-origin: center;">
+        </svg>
+      </div>
+
+      <button id="spinBtn" class="mt-6 px-8 py-3 rounded-2xl font-bold text-lg bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-lg shadow-pink-500/30 hover:shadow-xl active:scale-95 transition">
+        🎡 {t('spinner.spin' as any)}
+      </button>
+
+      <div id="winnerDisplay" class="mt-4 h-12 flex items-center">
+        <div class="text-slate-400 text-xl">—</div>
+      </div>
+    </div>
+
+    <!-- Options editor -->
+    <div class="bg-white rounded-3xl shadow-xl p-6">
+      <label class="block font-bold text-slate-700 mb-2">
+        {t('spinner.options' as any)}
+      </label>
+      <textarea 
+        id="options" 
+        rows="12"
+        class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-brand-500 focus:outline-none font-mono text-sm"
+      >Alice
+Bob
+Charlie
+Diana
+Emma
+Frank
+Grace
+Henry</textarea>
+      <p class="text-xs text-slate-500 mt-2">One option per line. Minimum 2, maximum 20.</p>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  const wheel = document.getElementById('wheel');
+  const spinBtn = document.getElementById('spinBtn');
+  const optionsEl = document.getElementById('options') as HTMLTextAreaElement;
+  const winnerDisplay = document.getElementById('winnerDisplay');
+
+  const COLORS = [
+    '#ef4444', '#f97316', '#eab308', '#22c55e', 
+    '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899',
+    '#f43f5e', '#fb923c', '#facc15', '#84cc16',
+    '#10b981', '#14b8a6', '#6366f1', '#a855f7',
+    '#d946ef', '#0ea5e9', '#84cc16', '#f59e0b'
+  ];
+
+  let currentRotation = 0;
+  let spinning = false;
+
+  function getOptions(): string[] {
+    const lines = optionsEl.value.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    return lines.slice(0, 20);
+  }
+
+  function drawWheel() {
+    if (!wheel) return;
+    const options = getOptions();
+    if (options.length < 2) {
+      wheel.innerHTML = '<text x="100" y="100" text-anchor="middle" fill="#94a3b8" font-size="12">Add 2+ options</text>';
+      return;
+    }
+
+    const sliceAngle = 360 / options.length;
+    let html = '';
+
+    options.forEach((opt, i) => {
+      const startAngle = i * sliceAngle - 90;
+      const endAngle = (i + 1) * sliceAngle - 90;
+      const startRad = (startAngle * Math.PI) / 180;
+      const endRad = (endAngle * Math.PI) / 180;
+      
+      const x1 = 100 + 95 * Math.cos(startRad);
+      const y1 = 100 + 95 * Math.sin(startRad);
+      const x2 = 100 + 95 * Math.cos(endRad);
+      const y2 = 100 + 95 * Math.sin(endRad);
+      
+      const largeArc = sliceAngle > 180 ? 1 : 0;
+      const path = `M 100 100 L ${x1} ${y1} A 95 95 0 ${largeArc} 1 ${x2} ${y2} Z`;
+      
+      // Text position
+      const textAngle = startAngle + sliceAngle / 2;
+      const textRad = (textAngle * Math.PI) / 180;
+      const textR = 60;
+      const tx = 100 + textR * Math.cos(textRad);
+      const ty = 100 + textR * Math.sin(textRad);
+      
+      const truncated = opt.length > 10 ? opt.slice(0, 9) + '…' : opt;
+      
+      html += `<path d="${path}" fill="${COLORS[i % COLORS.length]}" stroke="white" stroke-width="2"/>`;
+      html += `<text x="${tx}" y="${ty}" text-anchor="middle" dominant-baseline="middle" 
+              fill="white" font-size="8" font-weight="bold"
+              transform="rotate(${textAngle + 90} ${tx} ${ty})">${escapeXml(truncated)}</text>`;
+    });
+
+    // Center circle
+    html += '<circle cx="100" cy="100" r="12" fill="white" stroke="#64748b" stroke-width="2"/>';
+    html += '<circle cx="100" cy="100" r="4" fill="#64748b"/>';
+    
+    wheel.innerHTML = html;
+  }
+
+  function escapeXml(s: string): string {
+    return s.replace(/[<>&"']/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c] || c));
+  }
+
+  function spin() {
+    if (spinning || !wheel) return;
+    const options = getOptions();
+    if (options.length < 2) return;
+    
+    spinning = true;
+    if (winnerDisplay) winnerDisplay.innerHTML = '<div class="text-slate-400">Spinning...</div>';
+    
+    const sliceAngle = 360 / options.length;
+    // Spin by a random amount: 5-8 full rotations + random offset
+    const fullSpins = (5 + Math.floor(Math.random() * 4)) * 360;
+    const randomOffset = Math.random() * 360;
+    const totalSpin = fullSpins + randomOffset;
+    
+    currentRotation += totalSpin;
+    (wheel as unknown as HTMLElement).style.transform = `rotate(${currentRotation}deg)`;
+    
+    // Calculate which slice is at the top (pointer position) after rotation
+    // The wheel rotated clockwise by `currentRotation` degrees
+    // Pointer is at top = -90° from center in SVG coords (or 270°)
+    // Slice 0 starts at -90° and spans to -90 + sliceAngle
+    // After rotating by R degrees clockwise, slice originally at angle A is now at A + R
+    // We want to find the slice currently at -90° (top)
+    // So: original slice angle was at -90 - R
+    // Normalize: the slice index whose CENTER is at top
+    const normalizedRotation = ((currentRotation % 360) + 360) % 360;
+    // The angle on the wheel that's now at the top (relative to wheel's original orientation)
+    const angleAtTop = (360 - normalizedRotation) % 360;
+    // Convert to slice index (slices start at top going clockwise)
+    const winningIndex = Math.floor(angleAtTop / sliceAngle) % options.length;
+    
+    setTimeout(() => {
+      spinning = false;
+      const winner = options[winningIndex];
+      if (winnerDisplay) {
+        winnerDisplay.innerHTML = `
+          <div class="flex items-center gap-2 animate-pulse-once">
+            <span class="text-2xl">🏆</span>
+            <span class="text-xl font-black bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">${escapeHtml(winner)}</span>
+          </div>
+        `;
+      }
+    }, 4100);
+  }
+
+  function escapeHtml(s: string): string {
+    const div = document.createElement('div');
+    div.textContent = s;
+    return div.innerHTML;
+  }
+
+  spinBtn?.addEventListener('click', spin);
+  optionsEl?.addEventListener('input', drawWheel);
+  drawWheel();
+</script>
+
+<style>
+  @keyframes pulse-once {
+    0% { transform: scale(0.8); opacity: 0; }
+    50% { transform: scale(1.15); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .animate-pulse-once {
+    animation: pulse-once 0.4s ease-out;
+  }
+</style>

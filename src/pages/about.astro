@@ -1,0 +1,70 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+const title = 'About — FunMath Tools';
+const description = 'Learn about FunMath Tools — free interactive math tools and games for teachers, students, and parents worldwide.';
+---
+
+<BaseLayout title={title} description={description}>
+  <div class="max-w-3xl mx-auto py-8">
+    <nav class="text-sm text-slate-500 mb-6">
+      <a href="/" class="hover:text-brand-500">Home</a>
+      <span class="mx-2">/</span>
+      <span>About</span>
+    </nav>
+
+    <div class="text-center mb-10">
+      <div class="inline-flex w-20 h-20 rounded-3xl bg-gradient-to-br from-brand-400 to-brand-600 items-center justify-center text-5xl mb-4">📚</div>
+      <h1 class="text-4xl md:text-5xl font-extrabold text-slate-900 mb-3">About FunMath Tools</h1>
+      <p class="text-lg text-slate-600">Making math fun, accessible, and free for everyone.</p>
+    </div>
+
+    <div class="bg-white rounded-3xl shadow-lg p-8 prose prose-slate max-w-none">
+      <h2 class="text-2xl font-bold mb-3">Our Mission</h2>
+      <p class="text-slate-700 leading-relaxed mb-6">
+        FunMath Tools was created with one simple goal: <strong>make math practice enjoyable</strong>. We believe every student deserves access to high-quality, interactive math resources — without subscriptions, signups, or paywalls.
+      </p>
+
+      <h2 class="text-2xl font-bold mb-3">What We Offer</h2>
+      <div class="grid md:grid-cols-2 gap-4 mb-6">
+        <div class="bg-blue-50 rounded-2xl p-5">
+          <div class="text-3xl mb-2">🛠️</div>
+          <h3 class="font-bold text-lg mb-1">Math Tools</h3>
+          <p class="text-sm text-slate-600">Practical utilities like random number generators, dice rollers, percentage calculators, and timers — perfect for teachers and classrooms.</p>
+        </div>
+        <div class="bg-pink-50 rounded-2xl p-5">
+          <div class="text-3xl mb-2">🎮</div>
+          <h3 class="font-bold text-lg mb-1">Math Games</h3>
+          <p class="text-sm text-slate-600">Interactive games that turn math practice into fun. From Quick Math Challenges to Tug of War battles, every game makes learning engaging.</p>
+        </div>
+      </div>
+
+      <h2 class="text-2xl font-bold mb-3">Who We Serve</h2>
+      <ul class="space-y-2 text-slate-700 mb-6">
+        <li><strong>🎓 Teachers</strong> — Use our tools and games in your classroom for warm-ups, group activities, and reinforcement.</li>
+        <li><strong>🏠 Parents & Homeschoolers</strong> — Support your child's math journey with engaging practice.</li>
+        <li><strong>📚 Students</strong> — Practice math skills at your own pace, on any device.</li>
+      </ul>
+
+      <h2 class="text-2xl font-bold mb-3">Our Values</h2>
+      <ul class="space-y-2 text-slate-700 mb-6">
+        <li>✅ <strong>100% Free</strong> — No subscriptions, no premium tiers.</li>
+        <li>✅ <strong>No Signup Required</strong> — Start playing instantly.</li>
+        <li>✅ <strong>Privacy First</strong> — We respect your data.</li>
+        <li>✅ <strong>Multilingual</strong> — Available in English, Arabic, and French.</li>
+        <li>✅ <strong>Mobile-Friendly</strong> — Works on phones, tablets, and desktops.</li>
+      </ul>
+
+      <h2 class="text-2xl font-bold mb-3">Contact Us</h2>
+      <p class="text-slate-700 mb-2">
+        We'd love to hear your feedback, suggestions, or bug reports.
+      </p>
+      <p class="text-slate-700">
+        📧 <a href="mailto:contact@funmath.tools" class="text-brand-500 hover:underline">contact@funmath.tools</a>
+      </p>
+
+      <div class="mt-8 pt-6 border-t text-center text-sm text-slate-500">
+        Built with ❤️ to make math fun.
+      </div>
+    </div>
+  </div>
+</BaseLayout>

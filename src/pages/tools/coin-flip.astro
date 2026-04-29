@@ -1,0 +1,179 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { useTranslations, getLangFromUrl } from '../../i18n/ui';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const title = `${t('tool.coin-flip.name' as any)} — FunMath Tools`;
+const description = t('tool.coin-flip.long' as any);
+---
+
+<BaseLayout title={title} description={description}>
+  <nav class="text-sm text-slate-500 mb-4">
+    <a href="/" class="hover:text-brand-500">{t('nav.home' as any)}</a>
+    <span class="mx-2">/</span>
+    <span>{t('tool.coin-flip.name' as any)}</span>
+  </nav>
+
+  <div class="text-center mb-8">
+    <div class="inline-flex w-20 h-20 rounded-3xl bg-gradient-to-br from-yellow-400 to-orange-500 items-center justify-center text-5xl mb-4">🪙</div>
+    <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 mb-3">{t('tool.coin-flip.name' as any)}</h1>
+    <p class="text-slate-600 max-w-xl mx-auto">{t('tool.coin-flip.long' as any)}</p>
+  </div>
+
+  <div class="max-w-lg mx-auto bg-white rounded-3xl shadow-xl p-6 md:p-8">
+    <div class="flex justify-center py-8" style="perspective: 1000px;">
+      <div id="coin" class="coin w-40 h-40 md:w-48 md:h-48 cursor-pointer">
+        <div class="coin-face coin-heads">{t('coin.heads' as any).charAt(0)}</div>
+        <div class="coin-face coin-tails">{t('coin.tails' as any).charAt(0)}</div>
+      </div>
+    </div>
+
+    <div id="result" class="text-center text-2xl font-bold h-10 mb-4">
+      <span class="text-slate-400">?</span>
+    </div>
+
+    <button id="flipBtn" class="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white py-4 rounded-2xl font-bold text-lg shadow-lg shadow-orange-500/30 hover:shadow-xl hover:scale-[1.02] active:scale-95 transition">
+      🪙 {t('coin.flip' as any)}
+    </button>
+
+    <div class="mt-8 border-t pt-6">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-bold text-slate-700">{t('coin.stats' as any)}</h3>
+        <button id="resetBtn" class="text-xs text-red-500 hover:text-red-700 font-medium">{t('coin.reset' as any)}</button>
+      </div>
+      <div class="grid grid-cols-3 gap-3">
+        <div class="text-center p-3 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl">
+          <div class="text-xs text-slate-500 font-semibold">{t('coin.heads' as any)}</div>
+          <div id="heads" class="text-2xl font-black text-yellow-700">0</div>
+          <div id="headsPct" class="text-xs text-slate-500">0%</div>
+        </div>
+        <div class="text-center p-3 bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl">
+          <div class="text-xs text-slate-500 font-semibold">{t('coin.total' as any)}</div>
+          <div id="total" class="text-2xl font-black text-slate-700">0</div>
+          <div class="text-xs text-transparent">_</div>
+        </div>
+        <div class="text-center p-3 bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl">
+          <div class="text-xs text-slate-500 font-semibold">{t('coin.tails' as any)}</div>
+          <div id="tails" class="text-2xl font-black text-orange-700">0</div>
+          <div id="tailsPct" class="text-xs text-slate-500">0%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  const coin = document.getElementById('coin');
+  const flipBtn = document.getElementById('flipBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const resultEl = document.getElementById('result');
+  const headsEl = document.getElementById('heads');
+  const tailsEl = document.getElementById('tails');
+  const totalEl = document.getElementById('total');
+  const headsPct = document.getElementById('headsPct');
+  const tailsPct = document.getElementById('tailsPct');
+
+  const lang = document.documentElement.lang;
+  const HEADS = lang === 'ar' ? 'صورة' : (lang === 'fr' ? 'Face' : 'Heads');
+  const TAILS = lang === 'ar' ? 'كتابة' : (lang === 'fr' ? 'Pile' : 'Tails');
+
+  let stats = { heads: 0, tails: 0 };
+  let flipping = false;
+
+  // CRITICAL: We track rotation as a number that ALWAYS increases (only positive movement).
+  // Heads visible when (rotation mod 360) === 0
+  // Tails visible when (rotation mod 360) === 180
+  // We always start with heads visible (rotation = 0)
+  let totalRotation = 0;
+
+  function updateStats() {
+    const total = stats.heads + stats.tails;
+    if (headsEl) headsEl.textContent = String(stats.heads);
+    if (tailsEl) tailsEl.textContent = String(stats.tails);
+    if (totalEl) totalEl.textContent = String(total);
+    if (headsPct) headsPct.textContent = total ? `${Math.round(stats.heads / total * 100)}%` : '0%';
+    if (tailsPct) tailsPct.textContent = total ? `${Math.round(stats.tails / total * 100)}%` : '0%';
+  }
+
+  function flip() {
+    if (flipping || !coin) return;
+    flipping = true;
+
+    // Decide outcome (random)
+    const willBeHeads = Math.random() < 0.5;
+
+    // Current visible face: check rotation mod 360
+    // 0 = heads, 180 = tails
+    const currentMod = totalRotation % 360;
+    const isCurrentlyHeads = currentMod === 0;
+
+    // Calculate spin: always 5 full rotations (1800°), plus 180° if we need to flip face
+    const fullSpins = 1800; // 5 full rotations
+    const needsFlip = isCurrentlyHeads !== willBeHeads;
+    const extraHalfFlip = needsFlip ? 180 : 0;
+
+    // Update total rotation (always increases, monotonic)
+    totalRotation += fullSpins + extraHalfFlip;
+
+    // Apply CSS transform
+    coin.style.transition = 'transform 1.2s cubic-bezier(0.4, 0, 0.2, 1)';
+    coin.style.transform = `rotateY(${totalRotation}deg)`;
+
+    if (resultEl) resultEl.innerHTML = '<span class="text-slate-400">...</span>';
+
+    setTimeout(() => {
+      // Now update stats and label based on the actual outcome
+      if (willBeHeads) {
+        stats.heads++;
+      } else {
+        stats.tails++;
+      }
+      updateStats();
+
+      if (resultEl) {
+        const color = willBeHeads ? 'text-yellow-600' : 'text-orange-600';
+        const label = willBeHeads ? HEADS : TAILS;
+        resultEl.innerHTML = `<span class="${color}">${label}!</span>`;
+      }
+      flipping = false;
+    }, 1200);
+  }
+
+  flipBtn?.addEventListener('click', flip);
+  coin?.addEventListener('click', flip);
+  resetBtn?.addEventListener('click', () => {
+    stats = { heads: 0, tails: 0 };
+    updateStats();
+    if (resultEl) resultEl.innerHTML = '<span class="text-slate-400">?</span>';
+  });
+</script>
+
+<style>
+  .coin {
+    position: relative;
+    transform-style: preserve-3d;
+  }
+  .coin-face {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    font-size: 5rem;
+    font-weight: 900;
+    color: white;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2), inset 0 -5px 10px rgba(0,0,0,0.1);
+    border: 6px solid rgba(255,255,255,0.3);
+  }
+  .coin-heads {
+    background: radial-gradient(circle at 30% 30%, #fbbf24, #d97706);
+  }
+  .coin-tails {
+    background: radial-gradient(circle at 30% 30%, #fb923c, #c2410c);
+    transform: rotateY(180deg);
+  }
+</style>

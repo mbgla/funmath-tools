@@ -1,0 +1,373 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { useTranslations, getLangFromUrl } from '../../../i18n/ui';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const title = '2048 Math — Number Puzzle Game | FunMath Tools';
+const description = 'Free online 2048 number puzzle game. Combine matching tiles to reach 2048! Use arrow keys or swipe on mobile. Train your brain with math.';
+---
+
+<BaseLayout title={title} description={description}>
+  <nav class="text-sm text-slate-500 mb-4">
+    <a href="/" class="hover:text-brand-500">Home</a>
+    <span class="mx-2">/</span>
+    <a href="/#games" class="hover:text-brand-500">Games</a>
+    <span class="mx-2">/</span>
+    <span>2048 Math</span>
+  </nav>
+
+  <div class="text-center mb-6">
+    <div class="inline-flex w-20 h-20 rounded-3xl bg-gradient-to-br from-yellow-500 to-red-500 items-center justify-center text-5xl mb-4">🎯</div>
+    <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 mb-3">2048 Math</h1>
+    <p class="text-slate-600 max-w-xl mx-auto">Combine tiles with the same number to reach 2048. Powers of 2!</p>
+  </div>
+
+  <div class="max-w-md mx-auto">
+    <!-- Score bar -->
+    <div class="grid grid-cols-2 gap-3 mb-4">
+      <div class="bg-white rounded-xl p-3 text-center shadow">
+        <div class="text-xs text-slate-500 font-bold">SCORE</div>
+        <div id="score" class="text-2xl font-black text-slate-900">0</div>
+      </div>
+      <div class="bg-white rounded-xl p-3 text-center shadow">
+        <div class="text-xs text-slate-500 font-bold">BEST</div>
+        <div id="bestScore" class="text-2xl font-black text-amber-600">0</div>
+      </div>
+    </div>
+
+    <!-- Game board -->
+    <div id="boardContainer" class="bg-slate-300 rounded-2xl p-3 shadow-xl relative aspect-square mb-4 select-none">
+      <div id="grid" class="grid grid-cols-4 grid-rows-4 gap-3 w-full h-full"></div>
+    </div>
+
+    <!-- Controls -->
+    <div class="grid grid-cols-2 gap-3 mb-4">
+      <button id="newGameBtn" class="py-3 rounded-xl font-bold bg-gradient-to-r from-yellow-500 to-red-500 text-white shadow active:scale-95 transition">
+        🔄 New Game
+      </button>
+      <button id="undoBtn" class="py-3 rounded-xl font-bold bg-slate-200 text-slate-700 shadow active:scale-95 transition disabled:opacity-50" disabled>
+        ↶ Undo
+      </button>
+    </div>
+
+    <!-- Mobile arrows (visible on mobile) -->
+    <div class="md:hidden mb-4">
+      <div class="flex justify-center mb-2">
+        <button class="arrow-btn w-16 h-16 rounded-2xl bg-white shadow text-2xl active:scale-90" data-dir="up">⬆️</button>
+      </div>
+      <div class="flex justify-center gap-2">
+        <button class="arrow-btn w-16 h-16 rounded-2xl bg-white shadow text-2xl active:scale-90" data-dir="left">⬅️</button>
+        <button class="arrow-btn w-16 h-16 rounded-2xl bg-white shadow text-2xl active:scale-90" data-dir="down">⬇️</button>
+        <button class="arrow-btn w-16 h-16 rounded-2xl bg-white shadow text-2xl active:scale-90" data-dir="right">➡️</button>
+      </div>
+    </div>
+
+    <p class="text-center text-sm text-slate-500">
+      <span class="hidden md:inline">Use arrow keys</span>
+      <span class="md:hidden">Swipe or use buttons</span>
+    </p>
+  </div>
+
+  <!-- Game over modal -->
+  <div id="gameOverModal" class="fixed inset-0 bg-black/60 z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-3xl p-6 max-w-sm w-full text-center">
+      <div class="text-6xl mb-3" id="goEmoji">😢</div>
+      <h2 id="goTitle" class="text-2xl font-black mb-2">Game Over</h2>
+      <p class="text-slate-600 mb-6">Score: <span id="goScore" class="font-bold">0</span></p>
+      <button onclick="document.getElementById('gameOverModal').classList.remove('flex'); document.getElementById('gameOverModal').classList.add('hidden'); document.getElementById('newGameBtn').click();" class="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-yellow-500 to-red-500 text-white shadow">
+        🔄 Play Again
+      </button>
+    </div>
+  </div>
+
+  <section class="max-w-2xl mx-auto mt-16 prose prose-slate">
+    <h2 class="text-2xl font-bold mb-4">How to Play</h2>
+    <ol class="space-y-2 text-slate-700">
+      <li>Use arrow keys (or swipe on mobile) to move tiles.</li>
+      <li>When two tiles with the same number touch, they merge into one!</li>
+      <li>Goal: combine tiles to reach the 2048 tile.</li>
+      <li>Game ends when the board is full and no moves are possible.</li>
+    </ol>
+    <h2 class="text-2xl font-bold mt-8 mb-4">Math & Strategy</h2>
+    <p class="text-slate-700">Each merge doubles the value (2+2=4, 4+4=8, 8+8=16...). This is a great way to understand <strong>powers of 2</strong>: 2¹, 2², 2³, all the way to 2¹¹ = 2048.</p>
+  </section>
+</BaseLayout>
+
+<script>
+  type Cell = number;
+  type Board = Cell[][];
+
+  let board: Board = [];
+  let prevBoard: Board | null = null;
+  let prevScore = 0;
+  let score = 0;
+  let best = 0;
+  let isGameOver = false;
+
+  const gridEl = document.getElementById('grid');
+  const scoreEl = document.getElementById('score');
+  const bestScoreEl = document.getElementById('bestScore');
+  const newGameBtn = document.getElementById('newGameBtn');
+  const undoBtn = document.getElementById('undoBtn') as HTMLButtonElement;
+
+  const TILE_COLORS: Record<number, string> = {
+    0: 'bg-slate-200',
+    2: 'bg-amber-50 text-slate-700',
+    4: 'bg-amber-100 text-slate-700',
+    8: 'bg-orange-300 text-white',
+    16: 'bg-orange-400 text-white',
+    32: 'bg-orange-500 text-white',
+    64: 'bg-red-500 text-white',
+    128: 'bg-yellow-400 text-white',
+    256: 'bg-yellow-500 text-white',
+    512: 'bg-yellow-600 text-white',
+    1024: 'bg-amber-600 text-white',
+    2048: 'bg-gradient-to-br from-yellow-400 to-red-500 text-white',
+  };
+
+  function beep(freq: number, dur = 0.06) {
+    try {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.08, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(); osc.stop(ctx.currentTime + dur);
+    } catch (e) {}
+  }
+
+  function newBoard(): Board {
+    return [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]];
+  }
+
+  function cloneBoard(b: Board): Board {
+    return b.map(row => row.slice());
+  }
+
+  function addRandomTile(b: Board) {
+    const empty: [number, number][] = [];
+    for (let r = 0; r < 4; r++) {
+      for (let c = 0; c < 4; c++) {
+        if (b[r][c] === 0) empty.push([r, c]);
+      }
+    }
+    if (empty.length === 0) return;
+    const [r, c] = empty[Math.floor(Math.random() * empty.length)];
+    b[r][c] = Math.random() < 0.9 ? 2 : 4;
+  }
+
+  function render() {
+    if (!gridEl) return;
+    gridEl.innerHTML = '';
+    for (let r = 0; r < 4; r++) {
+      for (let c = 0; c < 4; c++) {
+        const value = board[r][c];
+        const div = document.createElement('div');
+        const color = TILE_COLORS[value] || 'bg-yellow-700 text-white';
+        div.className = `rounded-lg flex items-center justify-center font-black text-2xl md:text-3xl ${color} transition-all`;
+        if (value > 0) {
+          div.textContent = String(value);
+          div.style.animation = 'popIn 0.15s ease-out';
+          if (value >= 1024) div.classList.add('text-xl', 'md:text-2xl');
+          if (value >= 100) div.classList.add('text-xl', 'md:text-2xl');
+        }
+        gridEl.appendChild(div);
+      }
+    }
+    if (scoreEl) scoreEl.textContent = String(score);
+    if (bestScoreEl) bestScoreEl.textContent = String(best);
+    if (undoBtn) undoBtn.disabled = !prevBoard;
+  }
+
+  function slideLeft(row: number[]): { newRow: number[]; gained: number; moved: boolean } {
+    const filtered = row.filter(x => x !== 0);
+    let gained = 0;
+    const result: number[] = [];
+    let i = 0;
+    while (i < filtered.length) {
+      if (i + 1 < filtered.length && filtered[i] === filtered[i + 1]) {
+        result.push(filtered[i] * 2);
+        gained += filtered[i] * 2;
+        i += 2;
+      } else {
+        result.push(filtered[i]);
+        i++;
+      }
+    }
+    while (result.length < 4) result.push(0);
+    const moved = JSON.stringify(row) !== JSON.stringify(result);
+    return { newRow: result, gained, moved };
+  }
+
+  function move(direction: 'up' | 'down' | 'left' | 'right') {
+    if (isGameOver) return;
+
+    const beforeBoard = cloneBoard(board);
+    const beforeScore = score;
+    let totalGained = 0;
+    let anyMoved = false;
+    let newBoardArr = cloneBoard(board);
+
+    if (direction === 'left') {
+      for (let r = 0; r < 4; r++) {
+        const { newRow, gained, moved } = slideLeft(newBoardArr[r]);
+        newBoardArr[r] = newRow;
+        totalGained += gained;
+        if (moved) anyMoved = true;
+      }
+    } else if (direction === 'right') {
+      for (let r = 0; r < 4; r++) {
+        const reversed = newBoardArr[r].slice().reverse();
+        const { newRow, gained, moved } = slideLeft(reversed);
+        newBoardArr[r] = newRow.reverse();
+        totalGained += gained;
+        if (moved) anyMoved = true;
+      }
+    } else if (direction === 'up') {
+      for (let c = 0; c < 4; c++) {
+        const col = [newBoardArr[0][c], newBoardArr[1][c], newBoardArr[2][c], newBoardArr[3][c]];
+        const { newRow, gained, moved } = slideLeft(col);
+        for (let r = 0; r < 4; r++) newBoardArr[r][c] = newRow[r];
+        totalGained += gained;
+        if (moved) anyMoved = true;
+      }
+    } else if (direction === 'down') {
+      for (let c = 0; c < 4; c++) {
+        const col = [newBoardArr[3][c], newBoardArr[2][c], newBoardArr[1][c], newBoardArr[0][c]];
+        const { newRow, gained, moved } = slideLeft(col);
+        for (let r = 0; r < 4; r++) newBoardArr[3 - r][c] = newRow[r];
+        totalGained += gained;
+        if (moved) anyMoved = true;
+      }
+    }
+
+    if (anyMoved) {
+      prevBoard = beforeBoard;
+      prevScore = beforeScore;
+      board = newBoardArr;
+      score += totalGained;
+      if (score > best) {
+        best = score;
+        try { localStorage.setItem('2048_best', String(best)); } catch (e) {}
+      }
+      addRandomTile(board);
+      beep(440 + totalGained * 2, 0.05);
+      render();
+      checkGameOver();
+    }
+  }
+
+  function checkGameOver() {
+    // Check if there's any empty cell
+    for (let r = 0; r < 4; r++) {
+      for (let c = 0; c < 4; c++) {
+        if (board[r][c] === 0) return;
+      }
+    }
+    // Check if any merge is possible
+    for (let r = 0; r < 4; r++) {
+      for (let c = 0; c < 4; c++) {
+        const v = board[r][c];
+        if ((c < 3 && board[r][c + 1] === v) || (r < 3 && board[r + 1][c] === v)) return;
+      }
+    }
+    // No moves possible
+    isGameOver = true;
+    setTimeout(() => {
+      const modal = document.getElementById('gameOverModal');
+      const goEmoji = document.getElementById('goEmoji');
+      const goTitle = document.getElementById('goTitle');
+      const goScore = document.getElementById('goScore');
+
+      // Check if reached 2048
+      let reached2048 = false;
+      for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) if (board[r][c] >= 2048) reached2048 = true;
+
+      if (goEmoji) goEmoji.textContent = reached2048 ? '🏆' : '😢';
+      if (goTitle) goTitle.textContent = reached2048 ? 'You Won!' : 'Game Over';
+      if (goScore) goScore.textContent = String(score);
+      modal?.classList.remove('hidden');
+      modal?.classList.add('flex');
+    }, 300);
+  }
+
+  function startNewGame() {
+    board = newBoard();
+    addRandomTile(board);
+    addRandomTile(board);
+    score = 0;
+    prevBoard = null;
+    isGameOver = false;
+    document.getElementById('gameOverModal')?.classList.add('hidden');
+    document.getElementById('gameOverModal')?.classList.remove('flex');
+    render();
+  }
+
+  function undo() {
+    if (!prevBoard) return;
+    board = prevBoard;
+    score = prevScore;
+    prevBoard = null;
+    isGameOver = false;
+    render();
+  }
+
+  // Keyboard controls
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft' || e.key === 'a') { e.preventDefault(); move('left'); }
+    else if (e.key === 'ArrowRight' || e.key === 'd') { e.preventDefault(); move('right'); }
+    else if (e.key === 'ArrowUp' || e.key === 'w') { e.preventDefault(); move('up'); }
+    else if (e.key === 'ArrowDown' || e.key === 's') { e.preventDefault(); move('down'); }
+  });
+
+  // Swipe controls
+  const boardContainer = document.getElementById('boardContainer');
+  let touchStart: { x: number; y: number } | null = null;
+  boardContainer?.addEventListener('touchstart', (e) => {
+    const t = e.touches[0];
+    touchStart = { x: t.clientX, y: t.clientY };
+  });
+  boardContainer?.addEventListener('touchend', (e) => {
+    if (!touchStart) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - touchStart.x;
+    const dy = t.clientY - touchStart.y;
+    const absX = Math.abs(dx);
+    const absY = Math.abs(dy);
+    if (Math.max(absX, absY) < 30) return;
+    if (absX > absY) {
+      move(dx > 0 ? 'right' : 'left');
+    } else {
+      move(dy > 0 ? 'down' : 'up');
+    }
+    touchStart = null;
+  });
+
+  // Arrow buttons
+  document.querySelectorAll('.arrow-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const dir = (btn as HTMLElement).dataset.dir as 'up' | 'down' | 'left' | 'right';
+      move(dir);
+    });
+  });
+
+  newGameBtn?.addEventListener('click', startNewGame);
+  undoBtn?.addEventListener('click', undo);
+
+  // Load best score
+  try {
+    best = parseInt(localStorage.getItem('2048_best') || '0');
+  } catch (e) {}
+
+  startNewGame();
+</script>
+
+<style>
+  @keyframes popIn {
+    0% { transform: scale(0.5); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+</style>

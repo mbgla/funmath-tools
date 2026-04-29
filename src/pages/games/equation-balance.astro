@@ -1,0 +1,528 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { useTranslations, getLangFromUrl } from '../../i18n/ui';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const title = 'Equation Balance — Visual Algebra Game | FunMath Tools';
+const description = 'Free online equation balance game. Watch the scale tilt as you solve equations. Visual algebra practice with real animated balance scales.';
+---
+
+<BaseLayout title={title} description={description}>
+  <nav class="text-sm text-slate-500 mb-4">
+    <a href="/" class="hover:text-brand-500">Home</a>
+    <span class="mx-2">/</span>
+    <a href="/#games" class="hover:text-brand-500">Games</a>
+    <span class="mx-2">/</span>
+    <span>Equation Balance</span>
+  </nav>
+
+  <div class="text-center mb-6">
+    <div class="inline-flex w-20 h-20 rounded-3xl bg-gradient-to-br from-indigo-500 to-blue-600 items-center justify-center text-5xl mb-4">⚖️</div>
+    <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 mb-3">Equation Balance</h1>
+    <p class="text-slate-600 max-w-xl mx-auto">Find the missing number to balance both sides. Watch the scale react!</p>
+  </div>
+
+  <!-- Setup screen -->
+  <div id="setupScreen" class="max-w-2xl mx-auto bg-white rounded-3xl shadow-xl p-6 md:p-8">
+    <h2 class="font-bold text-lg text-slate-800 mb-4 text-center">Choose Difficulty</h2>
+    <div class="grid grid-cols-3 gap-3 mb-6">
+      <button class="diff-btn p-4 rounded-2xl font-bold border-2 border-slate-200 hover:border-indigo-500 transition" data-diff="easy" data-active="true">
+        <div class="text-2xl mb-1">🌱</div>
+        <div>Easy</div>
+        <div class="text-xs text-slate-500 font-normal">Numbers 1-20</div>
+      </button>
+      <button class="diff-btn p-4 rounded-2xl font-bold border-2 border-slate-200 hover:border-indigo-500 transition" data-diff="medium">
+        <div class="text-2xl mb-1">🔥</div>
+        <div>Medium</div>
+        <div class="text-xs text-slate-500 font-normal">Numbers 1-50</div>
+      </button>
+      <button class="diff-btn p-4 rounded-2xl font-bold border-2 border-slate-200 hover:border-indigo-500 transition" data-diff="hard">
+        <div class="text-2xl mb-1">⚡</div>
+        <div>Hard</div>
+        <div class="text-xs text-slate-500 font-normal">With multiplication</div>
+      </button>
+    </div>
+
+    <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 mb-6 text-sm text-indigo-800">
+      <strong>📚 Example:</strong> If you see <code class="bg-white px-2 py-1 rounded font-mono">5 + 3 = 6 + ?</code>, the answer is <strong>2</strong> (because both sides equal 8).
+    </div>
+
+    <button id="startBtn" class="w-full py-4 rounded-2xl font-bold text-lg bg-gradient-to-r from-indigo-500 to-blue-600 text-white shadow-lg active:scale-95 transition">
+      ⚖️ Start Practice
+    </button>
+  </div>
+
+  <!-- Game screen -->
+  <div id="gameScreen" class="hidden max-w-2xl mx-auto">
+    <!-- Stats -->
+    <div class="grid grid-cols-3 gap-2 mb-4">
+      <div class="bg-white rounded-xl p-2 text-center shadow text-sm">
+        <div class="text-slate-500 text-xs">Question</div>
+        <div class="font-bold"><span id="qNum">1</span>/10</div>
+      </div>
+      <div class="bg-green-50 rounded-xl p-2 text-center shadow text-sm">
+        <div class="text-green-600 text-xs">Correct</div>
+        <div class="font-bold text-green-700" id="correct">0</div>
+      </div>
+      <div class="bg-red-50 rounded-xl p-2 text-center shadow text-sm">
+        <div class="text-red-600 text-xs">Wrong</div>
+        <div class="font-bold text-red-700" id="wrong">0</div>
+      </div>
+    </div>
+
+    <!-- Progress bar -->
+    <div class="h-2 bg-slate-100 rounded-full overflow-hidden mb-4">
+      <div id="progressBar" class="h-full bg-gradient-to-r from-indigo-500 to-blue-600 transition-all duration-300" style="width:10%"></div>
+    </div>
+
+    <!-- ANIMATED SCALE -->
+    <div class="bg-gradient-to-b from-sky-50 to-indigo-50 rounded-3xl shadow-xl p-4 mb-4 relative overflow-hidden" style="min-height: 280px;">
+      <svg id="scaleSvg" viewBox="0 0 400 280" class="w-full h-auto" preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <linearGradient id="standGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#475569"/>
+            <stop offset="50%" stop-color="#64748b"/>
+            <stop offset="100%" stop-color="#475569"/>
+          </linearGradient>
+          <linearGradient id="panGradL" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#3b82f6"/>
+            <stop offset="100%" stop-color="#1e40af"/>
+          </linearGradient>
+          <linearGradient id="panGradR" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#a855f7"/>
+            <stop offset="100%" stop-color="#7e22ce"/>
+          </linearGradient>
+          <radialGradient id="pivotGrad">
+            <stop offset="0%" stop-color="#fbbf24"/>
+            <stop offset="100%" stop-color="#d97706"/>
+          </radialGradient>
+        </defs>
+
+        <!-- Base/floor -->
+        <ellipse cx="200" cy="265" rx="120" ry="8" fill="#1e293b" opacity="0.3"/>
+
+        <!-- Stand (pole) -->
+        <rect x="195" y="100" width="10" height="155" fill="url(#standGrad)" rx="2"/>
+        <!-- Stand base -->
+        <rect x="155" y="250" width="90" height="10" fill="#475569" rx="3"/>
+        <rect x="160" y="245" width="80" height="6" fill="#64748b" rx="2"/>
+
+        <!-- Pivot point -->
+        <circle cx="200" cy="100" r="8" fill="url(#pivotGrad)" stroke="#92400e" stroke-width="1"/>
+
+        <!-- BEAM (rotates around pivot) -->
+        <g id="beam" style="transform-origin: 200px 100px; transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);">
+          <!-- Crossbar -->
+          <rect x="50" y="97" width="300" height="6" fill="#475569" rx="2"/>
+          <!-- Decorative ridges -->
+          <line x1="60" y1="100" x2="340" y2="100" stroke="#1e293b" stroke-width="0.5" opacity="0.5"/>
+
+          <!-- LEFT CHAINS -->
+          <line id="leftChain1" x1="80" y1="103" x2="80" y2="155" stroke="#64748b" stroke-width="2" stroke-dasharray="3 2"/>
+
+          <!-- LEFT EQUATION TEXT (above pan, with white background bubble) -->
+          <g id="leftItems">
+            <rect x="30" y="115" width="100" height="30" fill="white" stroke="#3b82f6" stroke-width="2" rx="8"/>
+            <text x="80" y="135" text-anchor="middle" font-size="20" font-weight="900" fill="#1e3a8a" id="leftText">—</text>
+          </g>
+
+          <!-- LEFT PAN -->
+          <g id="leftPan">
+            <ellipse cx="80" cy="160" rx="50" ry="8" fill="#1e3a8a"/>
+            <path d="M 30,160 Q 30,180 80,180 Q 130,180 130,160 Z" fill="url(#panGradL)"/>
+            <circle cx="80" cy="155" r="3" fill="#1e293b"/>
+
+            <!-- Falling weight (when wrong, falls off) -->
+            <g id="leftWeight" opacity="0">
+              <circle cx="80" cy="170" r="14" fill="#dc2626"/>
+              <text x="80" y="176" text-anchor="middle" font-size="14" font-weight="900" fill="white">!</text>
+            </g>
+          </g>
+
+          <!-- RIGHT CHAINS -->
+          <line id="rightChain1" x1="320" y1="103" x2="320" y2="155" stroke="#64748b" stroke-width="2" stroke-dasharray="3 2"/>
+
+          <!-- RIGHT EQUATION TEXT -->
+          <g id="rightItems">
+            <rect x="270" y="115" width="100" height="30" fill="white" stroke="#a855f7" stroke-width="2" rx="8"/>
+            <text x="320" y="135" text-anchor="middle" font-size="20" font-weight="900" fill="#581c87" id="rightText">—</text>
+          </g>
+
+          <!-- RIGHT PAN -->
+          <g id="rightPan">
+            <ellipse cx="320" cy="160" rx="50" ry="8" fill="#581c87"/>
+            <path d="M 270,160 Q 270,180 320,180 Q 370,180 370,160 Z" fill="url(#panGradR)"/>
+            <circle cx="320" cy="155" r="3" fill="#1e293b"/>
+
+            <!-- Falling weight -->
+            <g id="rightWeight" opacity="0">
+              <circle cx="320" cy="170" r="14" fill="#dc2626"/>
+              <text x="320" y="176" text-anchor="middle" font-size="14" font-weight="900" fill="white">!</text>
+            </g>
+          </g>
+        </g>
+
+        <!-- Equals sign -->
+        <text id="equalsSign" x="200" y="220" text-anchor="middle" font-size="28" font-weight="900" fill="#6366f1">=</text>
+
+        <!-- Floating particles (sparkles when correct) -->
+        <g id="sparkles" opacity="0">
+          <circle cx="80" cy="60" r="3" fill="#fbbf24"/>
+          <circle cx="100" cy="80" r="2" fill="#fb923c"/>
+          <circle cx="320" cy="60" r="3" fill="#fbbf24"/>
+          <circle cx="300" cy="80" r="2" fill="#fb923c"/>
+        </g>
+      </svg>
+    </div>
+
+    <!-- Answer input -->
+    <div class="bg-white rounded-2xl shadow-lg p-4">
+      <div class="flex gap-2 mb-3">
+        <input
+          type="number"
+          id="answerInput"
+          inputmode="numeric"
+          autocomplete="off"
+          placeholder="?"
+          class="flex-1 px-4 py-3 border-2 border-slate-200 rounded-xl text-center text-2xl font-black focus:border-indigo-500 focus:outline-none"
+        />
+        <button id="submitBtn" class="px-6 rounded-xl font-bold bg-indigo-500 text-white text-2xl hover:bg-indigo-600 active:scale-95 transition">
+          ✓
+        </button>
+      </div>
+      <div id="feedback" class="text-center font-bold text-lg h-7"></div>
+    </div>
+  </div>
+
+  <!-- Results screen -->
+  <div id="resultsScreen" class="hidden max-w-md mx-auto bg-white rounded-3xl shadow-xl p-8 text-center">
+    <div class="text-6xl mb-3" id="resultEmoji">🎉</div>
+    <h2 class="text-2xl font-black mb-2">Practice Complete!</h2>
+    <div class="text-6xl font-black bg-gradient-to-br from-indigo-500 to-blue-600 bg-clip-text text-transparent mb-2" id="finalScore">0/10</div>
+    <div id="resultMsg" class="text-slate-600 mb-6">—</div>
+    <div class="flex gap-3">
+      <button id="againBtn" class="flex-1 py-3 rounded-2xl font-bold bg-gradient-to-r from-indigo-500 to-blue-600 text-white shadow-lg active:scale-95 transition">
+        🔄 Again
+      </button>
+      <button id="changeBtn" class="flex-1 py-3 rounded-2xl font-bold bg-slate-200 text-slate-700 active:scale-95 transition">
+        ⚙️ Settings
+      </button>
+    </div>
+  </div>
+
+  <section class="max-w-2xl mx-auto mt-16 prose prose-slate">
+    <h2 class="text-2xl font-bold mb-4">How to Play</h2>
+    <ol class="space-y-2 text-slate-700">
+      <li>Look at the equation. Both sides must equal.</li>
+      <li>Find the missing number (?) that makes the scale balance.</li>
+      <li>Type your answer and press ✓.</li>
+      <li>Watch the scale tilt or balance based on your answer!</li>
+      <li>Wrong answer = the heavy side drops, weight falls off!</li>
+    </ol>
+    <h2 class="text-2xl font-bold mt-8 mb-4">Why This Matters</h2>
+    <p class="text-slate-700">Equation balance is the foundation of algebra. Visual scales help you understand why solving for unknowns works the way it does.</p>
+  </section>
+</BaseLayout>
+
+<style>
+  /* Sparkle animation */
+  @keyframes sparkleFloat {
+    0% { opacity: 0; transform: translateY(0) scale(0.5); }
+    50% { opacity: 1; transform: translateY(-10px) scale(1.2); }
+    100% { opacity: 0; transform: translateY(-20px) scale(0.5); }
+  }
+  #sparkles.active {
+    animation: sparkleFloat 1s ease-out;
+  }
+
+  /* Falling weight animation */
+  @keyframes weightFall {
+    0% { opacity: 1; transform: translate(0, 0) rotate(0); }
+    100% { opacity: 0; transform: translate(20px, 80px) rotate(180deg); }
+  }
+  .weight-falling {
+    animation: weightFall 0.8s ease-in forwards;
+  }
+
+  /* Shake animation for wrong answer */
+  @keyframes scaleShake {
+    0%, 100% { transform: translate(0, 0); }
+    25% { transform: translate(-3px, 0); }
+    75% { transform: translate(3px, 0); }
+  }
+  #beam.shaking {
+    animation: scaleShake 0.3s;
+  }
+</style>
+
+<script>
+  const setupScreen = document.getElementById('setupScreen');
+  const gameScreen = document.getElementById('gameScreen');
+  const resultsScreen = document.getElementById('resultsScreen');
+  const startBtn = document.getElementById('startBtn');
+  const submitBtn = document.getElementById('submitBtn');
+  const againBtn = document.getElementById('againBtn');
+  const changeBtn = document.getElementById('changeBtn');
+  const answerInput = document.getElementById('answerInput') as HTMLInputElement;
+  const beam = document.getElementById('beam') as unknown as SVGGElement;
+  const leftText = document.getElementById('leftText');
+  const rightText = document.getElementById('rightText');
+  const leftWeight = document.getElementById('leftWeight');
+  const rightWeight = document.getElementById('rightWeight');
+  const sparkles = document.getElementById('sparkles');
+  const feedbackEl = document.getElementById('feedback');
+  const correctEl = document.getElementById('correct');
+  const wrongEl = document.getElementById('wrong');
+  const qNumEl = document.getElementById('qNum');
+  const progressBar = document.getElementById('progressBar');
+  const finalScoreEl = document.getElementById('finalScore');
+  const resultEmoji = document.getElementById('resultEmoji');
+  const resultMsg = document.getElementById('resultMsg');
+
+  const TOTAL = 10;
+  let difficulty = 'easy';
+  let current = 0;
+  let correct = 0;
+  let wrong = 0;
+  let currentAnswer = 0;
+
+  function beep(freq: number, dur = 0.08, type: OscillatorType = 'sine') {
+    try {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = type;
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.1, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(); osc.stop(ctx.currentTime + dur);
+    } catch (e) {}
+  }
+
+  function rand(min: number, max: number): number {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  function genQuestion() {
+    const max = difficulty === 'easy' ? 20 : difficulty === 'medium' ? 50 : 100;
+    const allowMul = difficulty === 'hard';
+
+    let leftStr = '', rightStr = '', target = 0;
+
+    const patterns = ['add_eq_add', 'sub_eq_sub', 'add_eq_sub'];
+    if (allowMul) patterns.push('mul_eq_mul');
+
+    const pattern = patterns[rand(0, patterns.length - 1)];
+
+    if (pattern === 'add_eq_add') {
+      const a = rand(1, max);
+      const b = rand(1, max);
+      const total = a + b;
+      const c = rand(1, total - 1);
+      target = total - c;
+      leftStr = `${a}+${b}`;
+      rightStr = `${c}+?`;
+    } else if (pattern === 'sub_eq_sub') {
+      const a = rand(10, max + 10);
+      const b = rand(1, a - 1);
+      const diff = a - b;
+      const c = rand(diff + 1, max + 10);
+      target = c - diff;
+      leftStr = `${a}−${b}`;
+      rightStr = `${c}−?`;
+    } else if (pattern === 'add_eq_sub') {
+      const a = rand(1, Math.floor(max / 2));
+      const b = rand(1, Math.floor(max / 2));
+      const total = a + b;
+      const c = rand(total + 1, max + total);
+      target = c - total;
+      leftStr = `${a}+${b}`;
+      rightStr = `${c}−?`;
+    } else if (pattern === 'mul_eq_mul') {
+      const factors = [2, 3, 4, 5, 6, 7, 8];
+      const a = factors[rand(0, factors.length - 1)];
+      const b = factors[rand(0, factors.length - 1)];
+      const product = a * b;
+      const validC: number[] = [];
+      for (let c = 2; c <= 10; c++) {
+        if (product % c === 0 && product / c <= 10 && c !== a) validC.push(c);
+      }
+      if (validC.length === 0) {
+        const total = a + b;
+        const c = rand(1, total - 1);
+        target = total - c;
+        leftStr = `${a}+${b}`;
+        rightStr = `${c}+?`;
+      } else {
+        const c = validC[rand(0, validC.length - 1)];
+        target = product / c;
+        leftStr = `${a}×${b}`;
+        rightStr = `${c}×?`;
+      }
+    }
+
+    currentAnswer = target;
+    if (leftText) leftText.textContent = leftStr;
+    if (rightText) rightText.textContent = rightStr;
+
+    // Reset scale to balanced position
+    if (beam) beam.style.transform = 'rotate(0deg)';
+    leftWeight?.classList.remove('weight-falling');
+    rightWeight?.classList.remove('weight-falling');
+    if (leftWeight) leftWeight.style.opacity = '0';
+    if (rightWeight) rightWeight.style.opacity = '0';
+    sparkles?.classList.remove('active');
+
+    answerInput.value = '';
+    answerInput.focus();
+    if (feedbackEl) feedbackEl.textContent = '';
+    if (qNumEl) qNumEl.textContent = String(current + 1);
+    if (progressBar) progressBar.style.width = `${((current + 1) / TOTAL) * 100}%`;
+  }
+
+  function tiltScale(direction: 'left' | 'right' | 'balanced') {
+    if (!beam) return;
+    if (direction === 'left') {
+      // Heavy on left, left side drops
+      beam.style.transform = 'rotate(-15deg)';
+    } else if (direction === 'right') {
+      beam.style.transform = 'rotate(15deg)';
+    } else {
+      beam.style.transform = 'rotate(0deg)';
+    }
+  }
+
+  function dropWeight(side: 'left' | 'right') {
+    const weight = side === 'left' ? leftWeight : rightWeight;
+    if (!weight) return;
+    weight.style.opacity = '1';
+    weight.style.transition = 'none';
+    setTimeout(() => {
+      weight.classList.add('weight-falling');
+    }, 50);
+  }
+
+  function showSparkles() {
+    sparkles?.classList.remove('active');
+    void (sparkles as unknown as HTMLElement)?.offsetWidth;
+    sparkles?.classList.add('active');
+  }
+
+  function shakeBeam() {
+    beam?.classList.remove('shaking');
+    void (beam as unknown as HTMLElement)?.offsetWidth;
+    beam?.classList.add('shaking');
+    setTimeout(() => beam?.classList.remove('shaking'), 400);
+  }
+
+  function submitAnswer() {
+    const val = parseInt(answerInput.value);
+    if (isNaN(val)) return;
+
+    if (val === currentAnswer) {
+      correct++;
+      beep(880, 0.1);
+      setTimeout(() => beep(1100, 0.15), 80);
+      if (correctEl) correctEl.textContent = String(correct);
+      if (feedbackEl) feedbackEl.innerHTML = '<span class="text-green-600">✓ Balanced perfectly!</span>';
+      tiltScale('balanced');
+      showSparkles();
+      if (rightText) {
+        const txt = rightText.textContent || '';
+        rightText.textContent = txt.replace('?', String(val));
+      }
+    } else {
+      wrong++;
+      beep(220, 0.2, 'sawtooth');
+      if (wrongEl) wrongEl.textContent = String(wrong);
+      if (feedbackEl) feedbackEl.innerHTML = `<span class="text-red-600">✗ Off balance! Was ${currentAnswer}</span>`;
+
+      // Determine which side is heavier
+      // If user's val < correct, right side has less weight, so left side drops
+      // If user's val > correct, right side has more weight, so right side drops
+      shakeBeam();
+      setTimeout(() => {
+        if (val < currentAnswer) {
+          tiltScale('left');
+          dropWeight('left');
+        } else {
+          tiltScale('right');
+          dropWeight('right');
+        }
+      }, 300);
+    }
+
+    current++;
+    setTimeout(() => {
+      if (current >= TOTAL) {
+        showResults();
+      } else {
+        genQuestion();
+      }
+    }, 1800);
+  }
+
+  function showResults() {
+    gameScreen?.classList.add('hidden');
+    resultsScreen?.classList.remove('hidden');
+    if (finalScoreEl) finalScoreEl.textContent = `${correct}/${TOTAL}`;
+
+    const pct = (correct / TOTAL) * 100;
+    if (resultEmoji && resultMsg) {
+      if (pct === 100) { resultEmoji.textContent = '🏆'; resultMsg.textContent = 'Perfect! Master of balance!'; }
+      else if (pct >= 80) { resultEmoji.textContent = '⭐'; resultMsg.textContent = 'Excellent work!'; }
+      else if (pct >= 60) { resultEmoji.textContent = '👍'; resultMsg.textContent = 'Good job! Keep practicing.'; }
+      else { resultEmoji.textContent = '📚'; resultMsg.textContent = 'Practice makes perfect!'; }
+    }
+    if (pct >= 80) {
+      [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => beep(f, 0.2), i * 100));
+    }
+  }
+
+  function startGame() {
+    setupScreen?.classList.add('hidden');
+    resultsScreen?.classList.add('hidden');
+    gameScreen?.classList.remove('hidden');
+    current = 0;
+    correct = 0;
+    wrong = 0;
+    if (correctEl) correctEl.textContent = '0';
+    if (wrongEl) wrongEl.textContent = '0';
+    genQuestion();
+  }
+
+  function showSetup() {
+    setupScreen?.classList.remove('hidden');
+    gameScreen?.classList.add('hidden');
+    resultsScreen?.classList.add('hidden');
+  }
+
+  document.querySelectorAll('.diff-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.diff-btn').forEach(b => {
+        b.removeAttribute('data-active');
+        b.classList.remove('border-indigo-500', 'bg-indigo-50');
+        b.classList.add('border-slate-200');
+      });
+      btn.setAttribute('data-active', 'true');
+      btn.classList.remove('border-slate-200');
+      btn.classList.add('border-indigo-500', 'bg-indigo-50');
+      difficulty = (btn as HTMLElement).dataset.diff || 'easy';
+    });
+  });
+  const activeDiff = document.querySelector('.diff-btn[data-active="true"]');
+  if (activeDiff) {
+    activeDiff.classList.remove('border-slate-200');
+    activeDiff.classList.add('border-indigo-500', 'bg-indigo-50');
+  }
+
+  startBtn?.addEventListener('click', startGame);
+  submitBtn?.addEventListener('click', submitAnswer);
+  againBtn?.addEventListener('click', startGame);
+  changeBtn?.addEventListener('click', showSetup);
+  answerInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') submitAnswer();
+  });
+</script>

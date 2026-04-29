@@ -1,0 +1,535 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { useTranslations, getLangFromUrl } from '../../i18n/ui';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const title = 'Math Snake — Eat the Right Answer | FunMath Tools';
+const description = 'Free online Math Snake game. Guide the snake to eat the correct answer to math equations. Classic Snake game with a brain-training twist.';
+---
+
+<BaseLayout title={title} description={description}>
+  <nav class="text-sm text-slate-500 mb-4">
+    <a href="/" class="hover:text-brand-500">Home</a>
+    <span class="mx-2">/</span>
+    <a href="/#games" class="hover:text-brand-500">Games</a>
+    <span class="mx-2">/</span>
+    <span>Math Snake</span>
+  </nav>
+
+  <div class="text-center mb-6">
+    <div class="inline-flex w-20 h-20 rounded-3xl bg-gradient-to-br from-emerald-400 to-green-600 items-center justify-center text-5xl mb-4">🐍</div>
+    <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 mb-3">Math Snake</h1>
+    <p class="text-slate-600 max-w-xl mx-auto">Guide the snake to eat the correct answer. Wrong answer = game over!</p>
+  </div>
+
+  <!-- Setup screen -->
+  <div id="setupScreen" class="max-w-2xl mx-auto bg-white rounded-3xl shadow-xl p-6 md:p-8">
+    <h2 class="font-bold text-lg text-slate-800 mb-4 text-center">Choose Difficulty</h2>
+    <div class="grid grid-cols-3 gap-3 mb-6">
+      <button class="diff-btn p-4 rounded-2xl font-bold border-2 border-slate-200 hover:border-green-500 transition" data-diff="easy" data-active="true">
+        <div class="text-2xl mb-1">🌱</div>
+        <div>Easy</div>
+        <div class="text-xs text-slate-500 font-normal">Slow + addition</div>
+      </button>
+      <button class="diff-btn p-4 rounded-2xl font-bold border-2 border-slate-200 hover:border-green-500 transition" data-diff="medium">
+        <div class="text-2xl mb-1">🔥</div>
+        <div>Medium</div>
+        <div class="text-xs text-slate-500 font-normal">+, −, ×</div>
+      </button>
+      <button class="diff-btn p-4 rounded-2xl font-bold border-2 border-slate-200 hover:border-green-500 transition" data-diff="hard">
+        <div class="text-2xl mb-1">⚡</div>
+        <div>Hard</div>
+        <div class="text-xs text-slate-500 font-normal">Fast + all ops</div>
+      </button>
+    </div>
+
+    <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-6 text-sm text-emerald-800">
+      <strong>🎮 Controls:</strong>
+      <ul class="mt-2 space-y-1 list-disc list-inside">
+        <li>Desktop: Arrow keys or WASD</li>
+        <li>Mobile: Swipe on the board</li>
+        <li>Eat the correct answer to grow longer!</li>
+      </ul>
+    </div>
+
+    <button id="startBtn" class="w-full py-4 rounded-2xl font-bold text-lg bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-lg active:scale-95 transition">
+      🐍 Start Game
+    </button>
+
+    <div id="bestScore" class="mt-4 text-center text-sm text-slate-500"></div>
+  </div>
+
+  <!-- Game screen -->
+  <div id="gameScreen" class="hidden max-w-2xl mx-auto">
+    <!-- Stats -->
+    <div class="grid grid-cols-3 gap-2 mb-3">
+      <div class="bg-white rounded-xl p-2 text-center shadow text-sm">
+        <div class="text-slate-500 text-xs">Score</div>
+        <div id="score" class="font-bold text-lg">0</div>
+      </div>
+      <div class="bg-emerald-50 rounded-xl p-2 text-center shadow text-sm">
+        <div class="text-emerald-600 text-xs">Length</div>
+        <div id="length" class="font-bold text-lg text-emerald-700">3</div>
+      </div>
+      <div class="bg-amber-50 rounded-xl p-2 text-center shadow text-sm">
+        <div class="text-amber-600 text-xs">Best</div>
+        <div id="bestScoreGame" class="font-bold text-lg text-amber-700">0</div>
+      </div>
+    </div>
+
+    <!-- Question -->
+    <div class="bg-white rounded-2xl shadow-lg p-3 mb-3 text-center">
+      <div class="text-xs text-slate-500 font-bold mb-1">EAT THE ANSWER TO:</div>
+      <div id="question" class="text-2xl md:text-3xl font-black text-slate-900">—</div>
+    </div>
+
+    <!-- Game board -->
+    <div id="boardContainer" class="bg-slate-800 rounded-2xl p-2 shadow-xl relative aspect-square mb-3 select-none touch-none">
+      <canvas id="canvas" class="w-full h-full rounded-xl"></canvas>
+    </div>
+
+    <!-- Mobile controls -->
+    <div class="md:hidden mb-3">
+      <div class="flex justify-center mb-2">
+        <button class="dir-btn w-14 h-14 rounded-2xl bg-white shadow text-2xl active:scale-90" data-dir="up">⬆️</button>
+      </div>
+      <div class="flex justify-center gap-2">
+        <button class="dir-btn w-14 h-14 rounded-2xl bg-white shadow text-2xl active:scale-90" data-dir="left">⬅️</button>
+        <button class="dir-btn w-14 h-14 rounded-2xl bg-white shadow text-2xl active:scale-90" data-dir="down">⬇️</button>
+        <button class="dir-btn w-14 h-14 rounded-2xl bg-white shadow text-2xl active:scale-90" data-dir="right">➡️</button>
+      </div>
+    </div>
+
+    <button id="restartBtn" class="w-full py-2 rounded-xl font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition text-sm">
+      🔄 Restart
+    </button>
+  </div>
+
+  <!-- Game over modal -->
+  <div id="gameOverModal" class="fixed inset-0 bg-black/60 z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-3xl p-6 max-w-sm w-full text-center">
+      <div class="text-6xl mb-3" id="goEmoji">🐍</div>
+      <h2 id="goTitle" class="text-2xl font-black mb-2">Game Over</h2>
+      <p class="text-slate-600 mb-2">Score: <span id="goScore" class="font-bold text-lg">0</span></p>
+      <p id="goReason" class="text-sm text-slate-500 mb-6">—</p>
+      <div id="goNewBest" class="hidden text-amber-600 font-bold mb-4">🏆 New Best Score!</div>
+      <div class="flex gap-3">
+        <button id="goAgainBtn" class="flex-1 py-3 rounded-xl font-bold bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow active:scale-95 transition">
+          🔄 Play Again
+        </button>
+        <button id="goSettingsBtn" class="flex-1 py-3 rounded-xl font-bold bg-slate-200 text-slate-700 active:scale-95 transition">
+          ⚙️ Settings
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <section class="max-w-2xl mx-auto mt-16 prose prose-slate">
+    <h2 class="text-2xl font-bold mb-4">How to Play</h2>
+    <ol class="space-y-2 text-slate-700">
+      <li>An equation appears at the top.</li>
+      <li>Three numbers spawn on the board: 1 correct + 2 wrong.</li>
+      <li>Guide your snake to eat the <strong>correct</strong> answer.</li>
+      <li>Eat wrong = Game Over! Hit wall or yourself = Game Over!</li>
+      <li>Each correct answer = +1 length and a new equation.</li>
+    </ol>
+  </section>
+</BaseLayout>
+
+<script>
+  type Cell = { x: number; y: number };
+  type Direction = 'up' | 'down' | 'left' | 'right';
+
+  const setupScreen = document.getElementById('setupScreen');
+  const gameScreen = document.getElementById('gameScreen');
+  const startBtn = document.getElementById('startBtn');
+  const restartBtn = document.getElementById('restartBtn');
+  const goAgainBtn = document.getElementById('goAgainBtn');
+  const goSettingsBtn = document.getElementById('goSettingsBtn');
+  const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+  const ctx = canvas?.getContext('2d');
+  const questionEl = document.getElementById('question');
+  const scoreEl = document.getElementById('score');
+  const lengthEl = document.getElementById('length');
+  const bestScoreEl = document.getElementById('bestScore');
+  const bestScoreGameEl = document.getElementById('bestScoreGame');
+
+  const GRID = 15;
+  let cellSize = 20;
+  let snake: Cell[] = [];
+  let direction: Direction = 'right';
+  let nextDirection: Direction = 'right';
+  let foods: { x: number; y: number; value: number }[] = [];
+  let correctAnswer = 0;
+  let score = 0;
+  let best = 0;
+  let speed = 200;
+  let gameLoop: number | null = null;
+  let difficulty = 'easy';
+  let isRunning = false;
+
+  function beep(freq: number, dur = 0.06, type: OscillatorType = 'sine') {
+    try {
+      const c = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const osc = c.createOscillator();
+      const gain = c.createGain();
+      osc.type = type;
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.1, c.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, c.currentTime + dur);
+      osc.connect(gain); gain.connect(c.destination);
+      osc.start(); osc.stop(c.currentTime + dur);
+    } catch (e) {}
+  }
+
+  function rand(min: number, max: number): number {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  function setupCanvas() {
+    if (!canvas) return;
+    const rect = canvas.parentElement!.getBoundingClientRect();
+    const size = Math.floor(rect.width - 16);
+    canvas.width = size;
+    canvas.height = size;
+    cellSize = Math.floor(size / GRID);
+  }
+
+  function genQuestion() {
+    const ops = difficulty === 'easy' ? ['+'] : difficulty === 'medium' ? ['+', '−', '×'] : ['+', '−', '×', '÷'];
+    const op = ops[rand(0, ops.length - 1)];
+    const max = difficulty === 'easy' ? 15 : difficulty === 'medium' ? 12 : 15;
+    let a, b, ans, text;
+
+    if (op === '+') { a = rand(1, max); b = rand(1, max); ans = a + b; text = `${a} + ${b}`; }
+    else if (op === '−') { a = rand(2, max); b = rand(1, a - 1); ans = a - b; text = `${a} − ${b}`; }
+    else if (op === '×') { a = rand(2, 9); b = rand(2, 9); ans = a * b; text = `${a} × ${b}`; }
+    else { ans = rand(2, 9); b = rand(2, 9); a = ans * b; text = `${a} ÷ ${b}`; }
+
+    correctAnswer = ans;
+    if (questionEl) questionEl.textContent = `${text} = ?`;
+    spawnFoods();
+  }
+
+  function spawnFoods() {
+    foods = [];
+    const usedPositions = new Set<string>();
+    snake.forEach(s => usedPositions.add(`${s.x},${s.y}`));
+
+    // Spawn 1 correct + 2 wrong answers
+    const values: number[] = [correctAnswer];
+    const wrong = new Set<number>([correctAnswer]);
+    while (values.length < 3) {
+      const offset = rand(1, 5) * (Math.random() < 0.5 ? -1 : 1);
+      const w = correctAnswer + offset;
+      if (w >= 0 && w <= 200 && !wrong.has(w)) {
+        wrong.add(w);
+        values.push(w);
+      }
+    }
+
+    // Shuffle
+    for (let i = values.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [values[i], values[j]] = [values[j], values[i]];
+    }
+
+    values.forEach(value => {
+      let x, y;
+      let attempts = 0;
+      do {
+        x = rand(0, GRID - 1);
+        y = rand(0, GRID - 1);
+        attempts++;
+      } while (usedPositions.has(`${x},${y}`) && attempts < 100);
+      usedPositions.add(`${x},${y}`);
+      foods.push({ x, y, value });
+    });
+  }
+
+  function draw() {
+    if (!ctx || !canvas) return;
+    // Clear
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Grid pattern (subtle)
+    ctx.strokeStyle = '#334155';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= GRID; i++) {
+      ctx.beginPath();
+      ctx.moveTo(i * cellSize, 0);
+      ctx.lineTo(i * cellSize, canvas.height);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(0, i * cellSize);
+      ctx.lineTo(canvas.width, i * cellSize);
+      ctx.stroke();
+    }
+
+    // Snake
+    snake.forEach((seg, i) => {
+      const isHead = i === 0;
+      ctx.fillStyle = isHead ? '#10b981' : `hsl(150, ${60 + (snake.length - i) * 2}%, ${35 + i * 1}%)`;
+      const padding = 1;
+      ctx.fillRect(
+        seg.x * cellSize + padding,
+        seg.y * cellSize + padding,
+        cellSize - padding * 2,
+        cellSize - padding * 2
+      );
+      // Eyes on head
+      if (isHead) {
+        ctx.fillStyle = 'white';
+        const ex = seg.x * cellSize;
+        const ey = seg.y * cellSize;
+        const cs = cellSize;
+        const eyeSize = Math.max(2, cs / 6);
+        if (direction === 'right') {
+          ctx.fillRect(ex + cs * 0.6, ey + cs * 0.2, eyeSize, eyeSize);
+          ctx.fillRect(ex + cs * 0.6, ey + cs * 0.65, eyeSize, eyeSize);
+        } else if (direction === 'left') {
+          ctx.fillRect(ex + cs * 0.25, ey + cs * 0.2, eyeSize, eyeSize);
+          ctx.fillRect(ex + cs * 0.25, ey + cs * 0.65, eyeSize, eyeSize);
+        } else if (direction === 'up') {
+          ctx.fillRect(ex + cs * 0.2, ey + cs * 0.25, eyeSize, eyeSize);
+          ctx.fillRect(ex + cs * 0.65, ey + cs * 0.25, eyeSize, eyeSize);
+        } else {
+          ctx.fillRect(ex + cs * 0.2, ey + cs * 0.6, eyeSize, eyeSize);
+          ctx.fillRect(ex + cs * 0.65, ey + cs * 0.6, eyeSize, eyeSize);
+        }
+      }
+    });
+
+    // Foods
+    foods.forEach(f => {
+      const cx = f.x * cellSize + cellSize / 2;
+      const cy = f.y * cellSize + cellSize / 2;
+      // Glow background
+      const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, cellSize * 0.7);
+      grad.addColorStop(0, '#fbbf24');
+      grad.addColorStop(1, '#f59e0b');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(cx, cy, cellSize * 0.45, 0, Math.PI * 2);
+      ctx.fill();
+      // Number
+      ctx.fillStyle = '#1e293b';
+      ctx.font = `bold ${Math.max(10, cellSize * 0.55)}px system-ui`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(String(f.value), cx, cy);
+    });
+  }
+
+  function step() {
+    if (!isRunning) return;
+    direction = nextDirection;
+    const head = snake[0];
+    let newHead: Cell;
+    if (direction === 'right') newHead = { x: head.x + 1, y: head.y };
+    else if (direction === 'left') newHead = { x: head.x - 1, y: head.y };
+    else if (direction === 'up') newHead = { x: head.x, y: head.y - 1 };
+    else newHead = { x: head.x, y: head.y + 1 };
+
+    // Wall collision
+    if (newHead.x < 0 || newHead.x >= GRID || newHead.y < 0 || newHead.y >= GRID) {
+      gameOver('Hit the wall!');
+      return;
+    }
+    // Self collision
+    if (snake.some(s => s.x === newHead.x && s.y === newHead.y)) {
+      gameOver('Hit yourself!');
+      return;
+    }
+
+    snake.unshift(newHead);
+
+    // Food collision
+    const eatenFood = foods.find(f => f.x === newHead.x && f.y === newHead.y);
+    if (eatenFood) {
+      if (eatenFood.value === correctAnswer) {
+        score += 10;
+        beep(880, 0.1);
+        setTimeout(() => beep(1100, 0.1), 60);
+        if (scoreEl) scoreEl.textContent = String(score);
+        if (lengthEl) lengthEl.textContent = String(snake.length);
+        if (score > best) {
+          best = score;
+          if (bestScoreGameEl) bestScoreGameEl.textContent = String(best);
+          try { localStorage.setItem('snake_best_' + difficulty, String(best)); } catch (e) {}
+        }
+        // Speed up slightly on hard
+        if (difficulty === 'hard' && speed > 80) speed -= 5;
+        genQuestion();
+      } else {
+        // Wrong food
+        gameOver(`Wrong! Answer was ${correctAnswer}`);
+        return;
+      }
+    } else {
+      snake.pop();
+    }
+
+    draw();
+  }
+
+  function startGame() {
+    setupScreen?.classList.add('hidden');
+    document.getElementById('gameOverModal')?.classList.add('hidden');
+    document.getElementById('gameOverModal')?.classList.remove('flex');
+    gameScreen?.classList.remove('hidden');
+
+    setTimeout(setupCanvas, 50); // wait for layout
+
+    snake = [
+      { x: 7, y: 7 },
+      { x: 6, y: 7 },
+      { x: 5, y: 7 },
+    ];
+    direction = 'right';
+    nextDirection = 'right';
+    score = 0;
+    speed = difficulty === 'easy' ? 200 : difficulty === 'medium' ? 150 : 110;
+
+    try { best = parseInt(localStorage.getItem('snake_best_' + difficulty) || '0'); } catch (e) {}
+
+    if (scoreEl) scoreEl.textContent = '0';
+    if (lengthEl) lengthEl.textContent = '3';
+    if (bestScoreGameEl) bestScoreGameEl.textContent = String(best);
+
+    genQuestion();
+    isRunning = true;
+
+    if (gameLoop) clearInterval(gameLoop);
+    gameLoop = window.setInterval(step, speed);
+    setTimeout(draw, 100);
+  }
+
+  function gameOver(reason: string) {
+    isRunning = false;
+    if (gameLoop) clearInterval(gameLoop);
+    beep(220, 0.3, 'sawtooth');
+    setTimeout(() => beep(160, 0.3, 'sawtooth'), 150);
+
+    const modal = document.getElementById('gameOverModal');
+    const goScore = document.getElementById('goScore');
+    const goReason = document.getElementById('goReason');
+    const goNewBest = document.getElementById('goNewBest');
+    const goEmoji = document.getElementById('goEmoji');
+    const goTitle = document.getElementById('goTitle');
+
+    if (goScore) goScore.textContent = String(score);
+    if (goReason) goReason.textContent = reason;
+
+    let prevBest = 0;
+    try { prevBest = parseInt(localStorage.getItem('snake_best_' + difficulty + '_check') || '0'); } catch (e) {}
+    const isNewBest = score > 0 && score >= best;
+    if (isNewBest && score > 0) {
+      goNewBest?.classList.remove('hidden');
+      if (goEmoji) goEmoji.textContent = '🏆';
+      if (goTitle) goTitle.textContent = 'New Best!';
+      [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => beep(f, 0.15), i * 100));
+    } else {
+      goNewBest?.classList.add('hidden');
+      if (goEmoji) goEmoji.textContent = '🐍';
+      if (goTitle) goTitle.textContent = 'Game Over';
+    }
+
+    setTimeout(() => {
+      modal?.classList.remove('hidden');
+      modal?.classList.add('flex');
+    }, 400);
+  }
+
+  function showSetup() {
+    setupScreen?.classList.remove('hidden');
+    gameScreen?.classList.add('hidden');
+    document.getElementById('gameOverModal')?.classList.add('hidden');
+    document.getElementById('gameOverModal')?.classList.remove('flex');
+    if (gameLoop) clearInterval(gameLoop);
+    isRunning = false;
+    showBest();
+  }
+
+  function showBest() {
+    try {
+      const b = parseInt(localStorage.getItem('snake_best_' + difficulty) || '0');
+      if (bestScoreEl) bestScoreEl.textContent = b > 0 ? `🏆 Best (${difficulty}): ${b}` : '';
+    } catch (e) {}
+  }
+
+  function changeDir(newDir: Direction) {
+    if (!isRunning) return;
+    if ((direction === 'up' && newDir === 'down') ||
+        (direction === 'down' && newDir === 'up') ||
+        (direction === 'left' && newDir === 'right') ||
+        (direction === 'right' && newDir === 'left')) return;
+    nextDirection = newDir;
+  }
+
+  // Keyboard
+  document.addEventListener('keydown', (e) => {
+    if (!isRunning) return;
+    if (e.key === 'ArrowUp' || e.key === 'w') { e.preventDefault(); changeDir('up'); }
+    else if (e.key === 'ArrowDown' || e.key === 's') { e.preventDefault(); changeDir('down'); }
+    else if (e.key === 'ArrowLeft' || e.key === 'a') { e.preventDefault(); changeDir('left'); }
+    else if (e.key === 'ArrowRight' || e.key === 'd') { e.preventDefault(); changeDir('right'); }
+  });
+
+  // Swipe
+  const boardContainer = document.getElementById('boardContainer');
+  let touchStart: { x: number; y: number } | null = null;
+  boardContainer?.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    const t = e.touches[0];
+    touchStart = { x: t.clientX, y: t.clientY };
+  }, { passive: false });
+  boardContainer?.addEventListener('touchend', (e) => {
+    if (!touchStart) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - touchStart.x;
+    const dy = t.clientY - touchStart.y;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) < 20) return;
+    if (Math.abs(dx) > Math.abs(dy)) changeDir(dx > 0 ? 'right' : 'left');
+    else changeDir(dy > 0 ? 'down' : 'up');
+    touchStart = null;
+  });
+
+  // Direction buttons
+  document.querySelectorAll('.dir-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      changeDir((btn as HTMLElement).dataset.dir as Direction);
+    });
+  });
+
+  // Difficulty buttons
+  document.querySelectorAll('.diff-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.diff-btn').forEach(b => {
+        b.removeAttribute('data-active');
+        b.classList.remove('border-green-500', 'bg-green-50');
+      });
+      btn.setAttribute('data-active', 'true');
+      btn.classList.add('border-green-500', 'bg-green-50');
+      difficulty = (btn as HTMLElement).dataset.diff || 'easy';
+      showBest();
+    });
+  });
+  document.querySelector('.diff-btn[data-active="true"]')?.classList.add('border-green-500', 'bg-green-50');
+
+  startBtn?.addEventListener('click', startGame);
+  restartBtn?.addEventListener('click', startGame);
+  goAgainBtn?.addEventListener('click', startGame);
+  goSettingsBtn?.addEventListener('click', showSetup);
+
+  window.addEventListener('resize', () => {
+    if (isRunning) {
+      setupCanvas();
+      draw();
+    }
+  });
+
+  showBest();
+</script>
