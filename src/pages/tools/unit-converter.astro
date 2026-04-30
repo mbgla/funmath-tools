@@ -1,0 +1,596 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { useTranslations, getLangFromUrl } from '../../i18n/ui';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const title = 'Unit Converter — Convert Length, Weight, Volume & More | FunMath Tools';
+const description = 'Free online unit converter for students. Convert between metric, imperial, and scientific units. Organized by grade level: primary, middle school, high school, and Bac sciences.';
+---
+
+<BaseLayout title={title} description={description}>
+  <nav class="text-sm text-slate-500 mb-4">
+    <a href="/" class="hover:text-brand-500">Home</a>
+    <span class="mx-2">/</span>
+    <a href="/#tools" class="hover:text-brand-500">Tools</a>
+    <span class="mx-2">/</span>
+    <span>Unit Converter</span>
+  </nav>
+
+  <div class="text-center mb-8">
+    <div class="inline-flex w-20 h-20 rounded-3xl bg-gradient-to-br from-cyan-400 to-teal-600 items-center justify-center text-5xl mb-4">📐</div>
+    <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 mb-3">Unit Converter</h1>
+    <p class="text-slate-600 max-w-xl mx-auto">All units organized by school level. Convert anything in seconds.</p>
+  </div>
+
+  <div class="max-w-3xl mx-auto bg-white rounded-3xl shadow-xl p-6 md:p-8">
+    
+    <!-- Level Selector -->
+    <div class="mb-6">
+      <label class="block text-sm font-bold text-slate-700 mb-3">📚 School Level</label>
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-2">
+        <button class="level-btn p-3 rounded-xl font-bold border-2 border-slate-200 hover:border-cyan-500 transition text-sm" data-level="primary">
+          <div class="text-xl mb-1">🌱</div>
+          <div>Primary</div>
+        </button>
+        <button class="level-btn p-3 rounded-xl font-bold border-2 border-slate-200 hover:border-cyan-500 transition text-sm" data-level="middle">
+          <div class="text-xl mb-1">🔥</div>
+          <div>Middle</div>
+        </button>
+        <button class="level-btn p-3 rounded-xl font-bold border-2 border-slate-200 hover:border-cyan-500 transition text-sm" data-level="high">
+          <div class="text-xl mb-1">⚡</div>
+          <div>High School</div>
+        </button>
+        <button class="level-btn p-3 rounded-xl font-bold border-2 border-slate-200 hover:border-cyan-500 transition text-sm" data-level="bac">
+          <div class="text-xl mb-1">🎓</div>
+          <div>Bac Sciences</div>
+        </button>
+        <button class="level-btn p-3 rounded-xl font-bold border-2 border-slate-200 hover:border-cyan-500 transition text-sm" data-level="all" data-active="true">
+          <div class="text-xl mb-1">🌍</div>
+          <div>All</div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Category Selector -->
+    <div class="mb-6">
+      <label class="block text-sm font-bold text-slate-700 mb-3">📂 Category</label>
+      <div id="categoryButtons" class="flex flex-wrap gap-2"></div>
+    </div>
+
+    <!-- Conversion area -->
+    <div class="bg-gradient-to-br from-cyan-50 to-teal-50 rounded-2xl p-5 mb-4">
+      <div class="grid md:grid-cols-2 gap-4">
+        <!-- From -->
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-2">FROM</label>
+          <input
+            type="number"
+            id="fromValue"
+            value="1"
+            inputmode="decimal"
+            class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-center text-2xl font-black focus:border-cyan-500 focus:outline-none mb-2"
+          />
+          <select id="fromUnit" class="w-full px-3 py-2 border-2 border-slate-200 rounded-xl font-semibold focus:border-cyan-500 focus:outline-none bg-white"></select>
+        </div>
+
+        <!-- To -->
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-2">TO</label>
+          <input
+            type="text"
+            id="toValue"
+            readonly
+            class="w-full px-4 py-3 border-2 border-cyan-300 rounded-xl text-center text-2xl font-black bg-white text-cyan-700 mb-2"
+          />
+          <select id="toUnit" class="w-full px-3 py-2 border-2 border-slate-200 rounded-xl font-semibold focus:border-cyan-500 focus:outline-none bg-white"></select>
+        </div>
+      </div>
+
+      <!-- Swap button -->
+      <button id="swapBtn" class="mt-4 w-full py-2 rounded-xl bg-white border-2 border-cyan-300 text-cyan-700 font-bold hover:bg-cyan-100 active:scale-95 transition text-sm">
+        🔄 Swap
+      </button>
+    </div>
+
+    <!-- Quick conversions -->
+    <div class="mt-4">
+      <div class="text-xs text-slate-500 font-bold mb-2">⚡ QUICK PRESETS</div>
+      <div id="quickPresets" class="flex flex-wrap gap-2 text-xs"></div>
+    </div>
+
+    <!-- Formula display -->
+    <div id="formulaBox" class="mt-4 bg-slate-50 rounded-xl p-3 text-center text-sm text-slate-600 hidden">
+      <span class="font-mono" id="formula">—</span>
+    </div>
+  </div>
+
+  <!-- SEO content -->
+  <section class="max-w-3xl mx-auto mt-16 prose prose-slate">
+    <h2 class="text-2xl font-bold mb-4">About This Converter</h2>
+    <p class="text-slate-700">
+      Our unit converter is organized by school level so students can find exactly what they need. From basic length conversions in primary school to scientific notation and physics constants for Bac sciences students.
+    </p>
+    <h2 class="text-2xl font-bold mt-8 mb-4">Categories Covered</h2>
+    <div class="grid md:grid-cols-2 gap-3 not-prose">
+      <div class="bg-blue-50 rounded-xl p-3 text-sm"><strong>📏 Length</strong> — mm, cm, m, km, inch, foot, mile</div>
+      <div class="bg-pink-50 rounded-xl p-3 text-sm"><strong>⚖️ Weight</strong> — mg, g, kg, ton, oz, lb</div>
+      <div class="bg-purple-50 rounded-xl p-3 text-sm"><strong>📦 Volume</strong> — ml, L, gallon, cup</div>
+      <div class="bg-orange-50 rounded-xl p-3 text-sm"><strong>🌡️ Temperature</strong> — °C, °F, K</div>
+      <div class="bg-green-50 rounded-xl p-3 text-sm"><strong>📐 Area</strong> — m², km², acre, hectare</div>
+      <div class="bg-yellow-50 rounded-xl p-3 text-sm"><strong>⏱️ Time</strong> — sec, min, hour, day, week, year</div>
+      <div class="bg-red-50 rounded-xl p-3 text-sm"><strong>🚀 Speed</strong> — m/s, km/h, mph, knot</div>
+      <div class="bg-indigo-50 rounded-xl p-3 text-sm"><strong>⚡ Energy</strong> — J, kJ, kWh, cal</div>
+      <div class="bg-teal-50 rounded-xl p-3 text-sm"><strong>💨 Pressure</strong> — Pa, kPa, bar, atm, psi</div>
+      <div class="bg-slate-100 rounded-xl p-3 text-sm"><strong>🔬 Scientific</strong> — Avogadro, light speed, etc.</div>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  // ====== UNIT DATABASE ======
+  // Each unit has a value relative to its base unit (1 = base)
+  // Categories with non-linear conversions (like temperature) use functions
+
+  type UnitData = {
+    name: string;
+    factor: number; // multiplier to base unit
+    levels: string[]; // which school levels include this
+  };
+
+  type CategoryData = {
+    icon: string;
+    name: string;
+    units: { [key: string]: UnitData };
+    levels: string[];
+  };
+
+  const CATEGORIES: { [key: string]: CategoryData } = {
+    length: {
+      icon: '📏',
+      name: 'Length',
+      levels: ['primary', 'middle', 'high', 'bac'],
+      units: {
+        'mm': { name: 'Millimeter (mm)', factor: 0.001, levels: ['primary', 'middle', 'high', 'bac'] },
+        'cm': { name: 'Centimeter (cm)', factor: 0.01, levels: ['primary', 'middle', 'high', 'bac'] },
+        'm': { name: 'Meter (m)', factor: 1, levels: ['primary', 'middle', 'high', 'bac'] },
+        'km': { name: 'Kilometer (km)', factor: 1000, levels: ['primary', 'middle', 'high', 'bac'] },
+        'inch': { name: 'Inch (in)', factor: 0.0254, levels: ['middle', 'high', 'bac'] },
+        'ft': { name: 'Foot (ft)', factor: 0.3048, levels: ['middle', 'high', 'bac'] },
+        'yd': { name: 'Yard (yd)', factor: 0.9144, levels: ['middle', 'high', 'bac'] },
+        'mile': { name: 'Mile (mi)', factor: 1609.344, levels: ['middle', 'high', 'bac'] },
+        'nm': { name: 'Nanometer (nm)', factor: 0.000000001, levels: ['high', 'bac'] },
+        'μm': { name: 'Micrometer (μm)', factor: 0.000001, levels: ['high', 'bac'] },
+        'ly': { name: 'Light Year (ly)', factor: 9.461e15, levels: ['bac'] },
+      },
+    },
+    weight: {
+      icon: '⚖️',
+      name: 'Weight / Mass',
+      levels: ['primary', 'middle', 'high', 'bac'],
+      units: {
+        'mg': { name: 'Milligram (mg)', factor: 0.001, levels: ['middle', 'high', 'bac'] },
+        'g': { name: 'Gram (g)', factor: 1, levels: ['primary', 'middle', 'high', 'bac'] },
+        'kg': { name: 'Kilogram (kg)', factor: 1000, levels: ['primary', 'middle', 'high', 'bac'] },
+        'ton': { name: 'Tonne (t)', factor: 1000000, levels: ['middle', 'high', 'bac'] },
+        'oz': { name: 'Ounce (oz)', factor: 28.3495, levels: ['middle', 'high'] },
+        'lb': { name: 'Pound (lb)', factor: 453.592, levels: ['middle', 'high'] },
+        'μg': { name: 'Microgram (μg)', factor: 0.000001, levels: ['high', 'bac'] },
+        'amu': { name: 'Atomic Mass Unit (u)', factor: 1.66054e-24, levels: ['bac'] },
+      },
+    },
+    volume: {
+      icon: '📦',
+      name: 'Volume',
+      levels: ['primary', 'middle', 'high', 'bac'],
+      units: {
+        'ml': { name: 'Milliliter (ml)', factor: 0.001, levels: ['primary', 'middle', 'high', 'bac'] },
+        'cl': { name: 'Centiliter (cl)', factor: 0.01, levels: ['primary', 'middle', 'high', 'bac'] },
+        'l': { name: 'Liter (L)', factor: 1, levels: ['primary', 'middle', 'high', 'bac'] },
+        'm3': { name: 'Cubic Meter (m³)', factor: 1000, levels: ['middle', 'high', 'bac'] },
+        'cm3': { name: 'Cubic Centimeter (cm³)', factor: 0.001, levels: ['middle', 'high', 'bac'] },
+        'gallon': { name: 'US Gallon', factor: 3.78541, levels: ['middle', 'high'] },
+        'cup': { name: 'Cup (US)', factor: 0.236588, levels: ['middle', 'high'] },
+        'tsp': { name: 'Teaspoon', factor: 0.00492892, levels: ['middle', 'high'] },
+      },
+    },
+    temperature: {
+      icon: '🌡️',
+      name: 'Temperature',
+      levels: ['middle', 'high', 'bac'],
+      units: {
+        'C': { name: 'Celsius (°C)', factor: 1, levels: ['middle', 'high', 'bac'] },
+        'F': { name: 'Fahrenheit (°F)', factor: 1, levels: ['middle', 'high', 'bac'] },
+        'K': { name: 'Kelvin (K)', factor: 1, levels: ['high', 'bac'] },
+      },
+    },
+    area: {
+      icon: '📐',
+      name: 'Area',
+      levels: ['primary', 'middle', 'high', 'bac'],
+      units: {
+        'mm2': { name: 'Square Millimeter (mm²)', factor: 0.000001, levels: ['middle', 'high', 'bac'] },
+        'cm2': { name: 'Square Centimeter (cm²)', factor: 0.0001, levels: ['primary', 'middle', 'high', 'bac'] },
+        'm2': { name: 'Square Meter (m²)', factor: 1, levels: ['primary', 'middle', 'high', 'bac'] },
+        'km2': { name: 'Square Kilometer (km²)', factor: 1000000, levels: ['middle', 'high', 'bac'] },
+        'hectare': { name: 'Hectare (ha)', factor: 10000, levels: ['middle', 'high', 'bac'] },
+        'acre': { name: 'Acre', factor: 4046.86, levels: ['high'] },
+        'sqft': { name: 'Square Foot (ft²)', factor: 0.092903, levels: ['high'] },
+      },
+    },
+    time: {
+      icon: '⏱️',
+      name: 'Time',
+      levels: ['primary', 'middle', 'high', 'bac'],
+      units: {
+        'ms': { name: 'Millisecond (ms)', factor: 0.001, levels: ['middle', 'high', 'bac'] },
+        's': { name: 'Second (s)', factor: 1, levels: ['primary', 'middle', 'high', 'bac'] },
+        'min': { name: 'Minute (min)', factor: 60, levels: ['primary', 'middle', 'high', 'bac'] },
+        'h': { name: 'Hour (h)', factor: 3600, levels: ['primary', 'middle', 'high', 'bac'] },
+        'day': { name: 'Day', factor: 86400, levels: ['primary', 'middle', 'high', 'bac'] },
+        'week': { name: 'Week', factor: 604800, levels: ['primary', 'middle', 'high', 'bac'] },
+        'month': { name: 'Month (30d)', factor: 2592000, levels: ['middle', 'high', 'bac'] },
+        'year': { name: 'Year (365d)', factor: 31536000, levels: ['middle', 'high', 'bac'] },
+      },
+    },
+    speed: {
+      icon: '🚀',
+      name: 'Speed',
+      levels: ['middle', 'high', 'bac'],
+      units: {
+        'mps': { name: 'Meters per Second (m/s)', factor: 1, levels: ['middle', 'high', 'bac'] },
+        'kph': { name: 'Kilometers per Hour (km/h)', factor: 0.277778, levels: ['middle', 'high', 'bac'] },
+        'mph': { name: 'Miles per Hour (mph)', factor: 0.44704, levels: ['middle', 'high'] },
+        'knot': { name: 'Knot', factor: 0.514444, levels: ['high'] },
+        'mach': { name: 'Mach (sound speed)', factor: 343, levels: ['bac'] },
+        'c': { name: 'Speed of Light (c)', factor: 299792458, levels: ['bac'] },
+      },
+    },
+    energy: {
+      icon: '⚡',
+      name: 'Energy',
+      levels: ['high', 'bac'],
+      units: {
+        'j': { name: 'Joule (J)', factor: 1, levels: ['high', 'bac'] },
+        'kj': { name: 'Kilojoule (kJ)', factor: 1000, levels: ['high', 'bac'] },
+        'cal': { name: 'Calorie (cal)', factor: 4.184, levels: ['high', 'bac'] },
+        'kcal': { name: 'Kilocalorie (kcal)', factor: 4184, levels: ['high', 'bac'] },
+        'wh': { name: 'Watt-hour (Wh)', factor: 3600, levels: ['high', 'bac'] },
+        'kwh': { name: 'Kilowatt-hour (kWh)', factor: 3600000, levels: ['high', 'bac'] },
+        'ev': { name: 'Electronvolt (eV)', factor: 1.60218e-19, levels: ['bac'] },
+      },
+    },
+    pressure: {
+      icon: '💨',
+      name: 'Pressure',
+      levels: ['high', 'bac'],
+      units: {
+        'pa': { name: 'Pascal (Pa)', factor: 1, levels: ['high', 'bac'] },
+        'kpa': { name: 'Kilopascal (kPa)', factor: 1000, levels: ['high', 'bac'] },
+        'mpa': { name: 'Megapascal (MPa)', factor: 1000000, levels: ['bac'] },
+        'bar': { name: 'Bar', factor: 100000, levels: ['high', 'bac'] },
+        'atm': { name: 'Atmosphere (atm)', factor: 101325, levels: ['high', 'bac'] },
+        'mmhg': { name: 'mmHg (Torr)', factor: 133.322, levels: ['bac'] },
+        'psi': { name: 'PSI', factor: 6894.76, levels: ['high'] },
+      },
+    },
+    angle: {
+      icon: '📐',
+      name: 'Angle',
+      levels: ['middle', 'high', 'bac'],
+      units: {
+        'deg': { name: 'Degree (°)', factor: 1, levels: ['middle', 'high', 'bac'] },
+        'rad': { name: 'Radian (rad)', factor: 57.2958, levels: ['high', 'bac'] },
+        'grad': { name: 'Gradian (grad)', factor: 0.9, levels: ['bac'] },
+        'turn': { name: 'Turn', factor: 360, levels: ['bac'] },
+      },
+    },
+    digital: {
+      icon: '💾',
+      name: 'Digital Storage',
+      levels: ['middle', 'high', 'bac'],
+      units: {
+        'bit': { name: 'Bit', factor: 1, levels: ['middle', 'high', 'bac'] },
+        'B': { name: 'Byte (B)', factor: 8, levels: ['middle', 'high', 'bac'] },
+        'KB': { name: 'Kilobyte (KB)', factor: 8192, levels: ['middle', 'high', 'bac'] },
+        'MB': { name: 'Megabyte (MB)', factor: 8388608, levels: ['middle', 'high', 'bac'] },
+        'GB': { name: 'Gigabyte (GB)', factor: 8589934592, levels: ['middle', 'high', 'bac'] },
+        'TB': { name: 'Terabyte (TB)', factor: 8796093022208, levels: ['high', 'bac'] },
+      },
+    },
+  };
+
+  // Quick presets per category
+  const PRESETS: { [key: string]: Array<{ label: string; from: string; to: string; value: number }> } = {
+    length: [
+      { label: '1 km → m', from: 'km', to: 'm', value: 1 },
+      { label: '100 cm → m', from: 'cm', to: 'm', value: 100 },
+      { label: '1 mile → km', from: 'mile', to: 'km', value: 1 },
+      { label: '12 inch → cm', from: 'inch', to: 'cm', value: 12 },
+    ],
+    weight: [
+      { label: '1 kg → g', from: 'kg', to: 'g', value: 1 },
+      { label: '1000 g → kg', from: 'g', to: 'kg', value: 1000 },
+      { label: '1 lb → kg', from: 'lb', to: 'kg', value: 1 },
+    ],
+    volume: [
+      { label: '1 L → ml', from: 'l', to: 'ml', value: 1 },
+      { label: '1 gallon → L', from: 'gallon', to: 'l', value: 1 },
+    ],
+    temperature: [
+      { label: '0 °C → °F', from: 'C', to: 'F', value: 0 },
+      { label: '100 °C → °F', from: 'C', to: 'F', value: 100 },
+      { label: '32 °F → °C', from: 'F', to: 'C', value: 32 },
+      { label: '0 °C → K', from: 'C', to: 'K', value: 0 },
+    ],
+    time: [
+      { label: '1 h → min', from: 'h', to: 'min', value: 1 },
+      { label: '1 day → h', from: 'day', to: 'h', value: 1 },
+    ],
+    area: [
+      { label: '1 hectare → m²', from: 'hectare', to: 'm2', value: 1 },
+      { label: '1 km² → m²', from: 'km2', to: 'm2', value: 1 },
+    ],
+    speed: [
+      { label: '100 km/h → m/s', from: 'kph', to: 'mps', value: 100 },
+      { label: '60 mph → km/h', from: 'mph', to: 'kph', value: 60 },
+    ],
+    energy: [
+      { label: '1 kcal → J', from: 'kcal', to: 'j', value: 1 },
+      { label: '1 kWh → J', from: 'kwh', to: 'j', value: 1 },
+    ],
+    pressure: [
+      { label: '1 atm → Pa', from: 'atm', to: 'pa', value: 1 },
+      { label: '1 bar → kPa', from: 'bar', to: 'kpa', value: 1 },
+    ],
+    angle: [
+      { label: '180° → rad', from: 'deg', to: 'rad', value: 180 },
+      { label: 'π rad → °', from: 'rad', to: 'deg', value: 3.14159 },
+    ],
+    digital: [
+      { label: '1 GB → MB', from: 'GB', to: 'MB', value: 1 },
+      { label: '1 MB → KB', from: 'MB', to: 'KB', value: 1 },
+    ],
+  };
+
+  let currentLevel = 'all';
+  let currentCategory = 'length';
+
+  const fromValue = document.getElementById('fromValue') as HTMLInputElement;
+  const toValue = document.getElementById('toValue') as HTMLInputElement;
+  const fromUnit = document.getElementById('fromUnit') as HTMLSelectElement;
+  const toUnit = document.getElementById('toUnit') as HTMLSelectElement;
+  const swapBtn = document.getElementById('swapBtn');
+  const categoryButtons = document.getElementById('categoryButtons');
+  const quickPresets = document.getElementById('quickPresets');
+  const formulaBox = document.getElementById('formulaBox');
+  const formula = document.getElementById('formula');
+
+  function getActiveCategories(): string[] {
+    const cats: string[] = [];
+    for (const [key, cat] of Object.entries(CATEGORIES)) {
+      if (currentLevel === 'all' || cat.levels.includes(currentLevel)) {
+        cats.push(key);
+      }
+    }
+    return cats;
+  }
+
+  function getActiveUnits(category: string): Array<{ key: string; data: UnitData }> {
+    const cat = CATEGORIES[category];
+    if (!cat) return [];
+    const result: Array<{ key: string; data: UnitData }> = [];
+    for (const [key, unit] of Object.entries(cat.units)) {
+      if (currentLevel === 'all' || unit.levels.includes(currentLevel)) {
+        result.push({ key, data: unit });
+      }
+    }
+    return result;
+  }
+
+  function renderCategoryButtons() {
+    if (!categoryButtons) return;
+    const activeCats = getActiveCategories();
+    categoryButtons.innerHTML = '';
+
+    if (!activeCats.includes(currentCategory)) {
+      currentCategory = activeCats[0] || 'length';
+    }
+
+    activeCats.forEach(catKey => {
+      const cat = CATEGORIES[catKey];
+      const btn = document.createElement('button');
+      const isActive = catKey === currentCategory;
+      btn.className = `px-3 py-2 rounded-xl font-bold border-2 text-sm transition ${
+        isActive
+          ? 'border-cyan-500 bg-cyan-50 text-cyan-700'
+          : 'border-slate-200 bg-white text-slate-600 hover:border-cyan-300'
+      }`;
+      btn.innerHTML = `${cat.icon} ${cat.name}`;
+      btn.addEventListener('click', () => {
+        currentCategory = catKey;
+        renderCategoryButtons();
+        renderUnits();
+        convert();
+      });
+      categoryButtons.appendChild(btn);
+    });
+  }
+
+  function renderUnits() {
+    if (!fromUnit || !toUnit) return;
+    const units = getActiveUnits(currentCategory);
+
+    fromUnit.innerHTML = '';
+    toUnit.innerHTML = '';
+
+    units.forEach(({ key, data }) => {
+      const opt1 = document.createElement('option');
+      opt1.value = key;
+      opt1.textContent = data.name;
+      fromUnit.appendChild(opt1);
+
+      const opt2 = document.createElement('option');
+      opt2.value = key;
+      opt2.textContent = data.name;
+      toUnit.appendChild(opt2);
+    });
+
+    // Default selections
+    if (units.length >= 2) {
+      fromUnit.value = units[0].key;
+      toUnit.value = units[1].key;
+    }
+
+    renderPresets();
+  }
+
+  function renderPresets() {
+    if (!quickPresets) return;
+    quickPresets.innerHTML = '';
+    const presets = PRESETS[currentCategory] || [];
+    const units = getActiveUnits(currentCategory);
+    const availableKeys = new Set(units.map(u => u.key));
+
+    presets.forEach(preset => {
+      // Only show presets where both units are available at current level
+      if (!availableKeys.has(preset.from) || !availableKeys.has(preset.to)) return;
+
+      const btn = document.createElement('button');
+      btn.className = 'px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-cyan-100 text-slate-700 hover:text-cyan-700 font-semibold transition';
+      btn.textContent = preset.label;
+      btn.addEventListener('click', () => {
+        fromValue.value = String(preset.value);
+        fromUnit.value = preset.from;
+        toUnit.value = preset.to;
+        convert();
+      });
+      quickPresets.appendChild(btn);
+    });
+  }
+
+  function tempConvert(value: number, from: string, to: string): number {
+    // Convert to Celsius first
+    let c: number;
+    if (from === 'C') c = value;
+    else if (from === 'F') c = (value - 32) * 5/9;
+    else c = value - 273.15; // K
+
+    // Convert from Celsius to target
+    if (to === 'C') return c;
+    if (to === 'F') return c * 9/5 + 32;
+    return c + 273.15; // K
+  }
+
+  function formatNumber(n: number): string {
+    if (!isFinite(n)) return '—';
+    if (n === 0) return '0';
+
+    const absN = Math.abs(n);
+    if (absN >= 1e15 || absN < 1e-6) {
+      return n.toExponential(4);
+    }
+    if (absN >= 1000000) {
+      return n.toLocaleString('en-US', { maximumFractionDigits: 2 });
+    }
+    if (absN >= 1) {
+      return n.toLocaleString('en-US', { maximumFractionDigits: 6 });
+    }
+    return n.toLocaleString('en-US', { maximumFractionDigits: 8 });
+  }
+
+  function convert() {
+    if (!fromValue || !fromUnit || !toUnit || !toValue) return;
+    const val = parseFloat(fromValue.value);
+    if (isNaN(val)) {
+      toValue.value = '';
+      return;
+    }
+
+    const fromKey = fromUnit.value;
+    const toKey = toUnit.value;
+    const cat = CATEGORIES[currentCategory];
+    if (!cat) return;
+
+    let result: number;
+    if (currentCategory === 'temperature') {
+      result = tempConvert(val, fromKey, toKey);
+    } else {
+      const fromFactor = cat.units[fromKey]?.factor || 1;
+      const toFactor = cat.units[toKey]?.factor || 1;
+      // Convert to base, then to target
+      const baseValue = val * fromFactor;
+      result = baseValue / toFactor;
+    }
+
+    toValue.value = formatNumber(result);
+
+    // Show formula
+    if (formulaBox && formula) {
+      const fromName = cat.units[fromKey]?.name.split(' ')[0] || '';
+      const toName = cat.units[toKey]?.name.split(' ')[0] || '';
+
+      if (currentCategory === 'temperature') {
+        let f = '';
+        if (fromKey === 'C' && toKey === 'F') f = '°F = °C × 9/5 + 32';
+        else if (fromKey === 'F' && toKey === 'C') f = '°C = (°F - 32) × 5/9';
+        else if (fromKey === 'C' && toKey === 'K') f = 'K = °C + 273.15';
+        else if (fromKey === 'K' && toKey === 'C') f = '°C = K - 273.15';
+        else if (fromKey === 'F' && toKey === 'K') f = 'K = (°F - 32) × 5/9 + 273.15';
+        else if (fromKey === 'K' && toKey === 'F') f = '°F = (K - 273.15) × 9/5 + 32';
+        else f = `${fromKey} = ${toKey}`;
+        formula.textContent = f;
+      } else {
+        const fromFactor = cat.units[fromKey]?.factor || 1;
+        const toFactor = cat.units[toKey]?.factor || 1;
+        const ratio = fromFactor / toFactor;
+        formula.textContent = `1 ${fromName} = ${formatNumber(ratio)} ${toName}`;
+      }
+      formulaBox.classList.remove('hidden');
+    }
+  }
+
+  // Level button handlers
+  document.querySelectorAll('.level-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.level-btn').forEach(b => {
+        b.removeAttribute('data-active');
+        b.classList.remove('border-cyan-500', 'bg-cyan-50');
+        b.classList.add('border-slate-200');
+      });
+      btn.setAttribute('data-active', 'true');
+      btn.classList.remove('border-slate-200');
+      btn.classList.add('border-cyan-500', 'bg-cyan-50');
+      currentLevel = (btn as HTMLElement).dataset.level || 'all';
+      renderCategoryButtons();
+      renderUnits();
+      convert();
+    });
+  });
+  // Initialize default level
+  const activeLevelBtn = document.querySelector('.level-btn[data-active="true"]');
+  if (activeLevelBtn) {
+    activeLevelBtn.classList.remove('border-slate-200');
+    activeLevelBtn.classList.add('border-cyan-500', 'bg-cyan-50');
+  }
+
+  // Listeners
+  fromValue?.addEventListener('input', convert);
+  fromUnit?.addEventListener('change', convert);
+  toUnit?.addEventListener('change', convert);
+  swapBtn?.addEventListener('click', () => {
+    const tmp = fromUnit.value;
+    fromUnit.value = toUnit.value;
+    toUnit.value = tmp;
+    if (toValue.value) {
+      const newVal = parseFloat(toValue.value.replace(/,/g, ''));
+      if (!isNaN(newVal)) fromValue.value = String(newVal);
+    }
+    convert();
+  });
+
+  // Initial render
+  renderCategoryButtons();
+  renderUnits();
+  convert();
+</script>

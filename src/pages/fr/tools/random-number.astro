@@ -1,5 +1,5 @@
 ---
-// src/pages/fr/tools/random-number.astro
+// src/pages/tools/random-number.astro
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import { useTranslations, getLangFromUrl } from '../../../i18n/ui';
 
@@ -142,6 +142,7 @@ const description = t('tool.random-number.long' as any);
   const clearBtn = document.getElementById('clearBtn');
 
   let history: string[] = [];
+  let usedNumbers: Set<number> = new Set(); // for no-duplicates across generations
 
   function generate() {
     const min = parseInt(minEl.value);
@@ -160,14 +161,35 @@ const description = t('tool.random-number.long' as any);
 
     const results: number[] = [];
     if (unique) {
+      // Build pool excluding already-used numbers (across generations)
       const pool: number[] = [];
-      for (let i = min; i <= max; i++) pool.push(i);
+      for (let i = min; i <= max; i++) {
+        if (!usedNumbers.has(i)) pool.push(i);
+      }
+
+      // If pool is exhausted (all numbers used across generations), reset
+      if (pool.length < count) {
+        usedNumbers.clear();
+        pool.length = 0;
+        for (let i = min; i <= max; i++) pool.push(i);
+        // Show notification that pool was reset
+        if (resultDiv) {
+          const note = document.createElement('div');
+          note.className = 'text-xs text-amber-600 mb-2 font-semibold';
+          note.textContent = '🔄 All numbers used - resetting pool';
+          resultDiv.appendChild(note);
+        }
+      }
+
       for (let i = 0; i < count; i++) {
         const idx = Math.floor(Math.random() * pool.length);
         results.push(pool[idx]);
+        usedNumbers.add(pool[idx]);
         pool.splice(idx, 1);
       }
     } else {
+      // Reset used numbers when toggling off
+      usedNumbers.clear();
       for (let i = 0; i < count; i++) {
         results.push(Math.floor(Math.random() * (max - min + 1)) + min);
       }
@@ -201,6 +223,11 @@ const description = t('tool.random-number.long' as any);
     renderHistory();
   }
 
+  // Reset used numbers when settings change
+  minEl?.addEventListener('change', () => usedNumbers.clear());
+  maxEl?.addEventListener('change', () => usedNumbers.clear());
+  uniqueEl?.addEventListener('change', () => usedNumbers.clear());
+
   function renderHistory() {
     if (!historySection || !historyDiv) return;
     if (history.length === 0) {
@@ -217,7 +244,7 @@ const description = t('tool.random-number.long' as any);
   }
 
   generateBtn?.addEventListener('click', generate);
-  clearBtn?.addEventListener('click', () => { history = []; renderHistory(); });
+  clearBtn?.addEventListener('click', () => { history = []; usedNumbers.clear(); renderHistory(); });
   
   // Enter key triggers generation
   [minEl, maxEl, countEl].forEach(el => {
