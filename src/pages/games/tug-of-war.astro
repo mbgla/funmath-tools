@@ -24,38 +24,38 @@ const description = 'Free 2-player tug of war math game. Solve equations to pull
 
   <!-- Setup -->
   <div id="setupScreen" class="max-w-2xl mx-auto bg-white rounded-3xl shadow-xl p-6 md:p-8">
-    <h2 class="font-bold text-lg text-slate-800 mb-4 text-center">Game Mode</h2>
+    <h2 class="font-bold text-lg text-slate-800 mb-4 text-center"data-i18n="tow_mode">Game Mode</h2>
     <div class="grid grid-cols-2 gap-3 mb-6">
       <button class="mode-btn p-4 rounded-2xl font-bold border-2 border-slate-200 hover:border-blue-500 transition" data-mode="2p" data-active="true">
         <div class="text-3xl mb-1">👥</div>
-        <div>2 Players</div>
-        <div class="text-xs text-slate-500 font-normal">Same device</div>
+        <divdata-i18n="tow_2p">2 Players</div>
+        <div class="text-xs text-slate-500 font-normal"data-i18n="tow_same">Same device</div>
       </button>
       <button class="mode-btn p-4 rounded-2xl font-bold border-2 border-slate-200 hover:border-blue-500 transition" data-mode="cpu">
         <div class="text-3xl mb-1">🤖</div>
-        <div>vs Robot</div>
-        <div class="text-xs text-slate-500 font-normal">Beat the AI</div>
+        <divdata-i18n="tow_cpu">vs Robot</div>
+        <div class="text-xs text-slate-500 font-normal"data-i18n="tow_beat">Beat the AI</div>
       </button>
     </div>
 
-    <h2 class="font-bold text-lg text-slate-800 mb-4 text-center">Difficulty</h2>
+    <h2 class="font-bold text-lg text-slate-800 mb-4 text-center"data-i18n="tow_diff">Difficulty</h2>
     <div class="grid grid-cols-3 gap-3 mb-6">
       <button class="diff-btn p-3 rounded-2xl font-bold border-2 border-slate-200 hover:border-blue-500 transition text-sm" data-diff="easy" data-active="true">
-        <div class="text-xl mb-1">🌱</div>Easy<div class="text-xs text-slate-400">+, −</div>
+        <div class="text-xl mb-1">🌱</divdata-i18n="easy">Easy<div class="text-xs text-slate-400">+, −</div>
       </button>
       <button class="diff-btn p-3 rounded-2xl font-bold border-2 border-slate-200 hover:border-blue-500 transition text-sm" data-diff="medium">
-        <div class="text-xl mb-1">🔥</div>Medium<div class="text-xs text-slate-400">+, −, ×</div>
+        <div class="text-xl mb-1">🔥</divdata-i18n="medium">Medium<div class="text-xs text-slate-400">+, −, ×</div>
       </button>
       <button class="diff-btn p-3 rounded-2xl font-bold border-2 border-slate-200 hover:border-blue-500 transition text-sm" data-diff="hard">
-        <div class="text-xl mb-1">⚡</div>Hard<div class="text-xs text-slate-400">All ops</div>
+        <div class="text-xl mb-1">⚡</divdata-i18n="hard">Hard<div class="text-xs text-slate-400">All ops</div>
       </button>
     </div>
 
-    <h2 class="font-bold text-lg text-slate-800 mb-4 text-center">First to how many?</h2>
+    <h2 class="font-bold text-lg text-slate-800 mb-4 text-center"data-i18n="tow_first">First to how many?</h2>
     <div class="grid grid-cols-3 gap-3 mb-6">
-      <button class="win-btn py-3 rounded-xl font-bold border-2 border-slate-200 hover:border-blue-500 transition" data-win="3">3 pulls</button>
-      <button class="win-btn py-3 rounded-xl font-bold border-2 border-slate-200 hover:border-blue-500 transition" data-win="5" data-active="true">5 pulls</button>
-      <button class="win-btn py-3 rounded-xl font-bold border-2 border-slate-200 hover:border-blue-500 transition" data-win="7">7 pulls</button>
+      <button class="win-btn py-3 rounded-xl font-bold border-2 border-slate-200 hover:border-blue-500 transition" data-win="3"data-i18n="tow_pulls3">3 pulls</button>
+      <button class="win-btn py-3 rounded-xl font-bold border-2 border-slate-200 hover:border-blue-500 transition" data-win="5" data-active="true"data-i18n="tow_pulls5">5 pulls</button>
+      <button class="win-btn py-3 rounded-xl font-bold border-2 border-slate-200 hover:border-blue-500 transition" data-win="7"data-i18n="tow_pulls7">7 pulls</button>
     </div>
 
     <button id="startBtn" class="w-full py-4 rounded-2xl font-bold text-lg bg-gradient-to-r from-blue-600 to-red-600 text-white shadow-lg active:scale-95 transition">
@@ -65,8 +65,8 @@ const description = 'Free 2-player tug of war math game. Solve equations to pull
 
   <!-- Game -->
   <div id="gameScreen" class="hidden max-w-5xl mx-auto">
-    <!-- Score -->
-    <div class="bg-white rounded-2xl shadow p-3 mb-4 flex items-center justify-between">
+    <!-- Score - always LTR: Blue(You) left, Red(Robot) right -->
+    <div class="bg-white rounded-2xl shadow p-3 mb-4 flex items-center justify-between" dir="ltr">
       <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-xl font-bold flex items-center gap-2">
         <span>🔵</span><span id="p1Name">Blue</span><span id="p1Score" class="text-2xl ms-2">0</span>
       </div>
@@ -220,12 +220,12 @@ const description = 'Free 2-player tug of war math game. Solve equations to pull
       </svg>
     </div>
 
-    <!-- Player panels -->
-    <div class="grid md:grid-cols-2 gap-4">
+    <!-- Player panels - always LTR layout -->
+    <div class="grid md:grid-cols-2 gap-4" dir="ltr">
       <!-- Player 1 (Blue) -->
       <div class="bg-white rounded-3xl shadow-xl p-5 border-t-8 border-blue-600">
         <h3 class="font-bold text-blue-600 mb-3 text-center text-lg" id="p1Label">🔵 Blue Team</h3>
-        <div id="q1" class="text-center text-3xl md:text-4xl font-black text-slate-900 mb-3 min-h-[2.5rem]">—</div>
+        <div id="q1" dir="ltr" class="text-center text-3xl md:text-4xl font-black text-slate-900 mb-3 min-h-[2.5rem]">—</div>
         <div id="d1" class="bg-slate-50 border-2 border-slate-200 rounded-xl py-3 text-center text-2xl font-bold mb-3 min-h-[3rem] transition-all">0</div>
         <div class="grid grid-cols-3 gap-1.5">
           {[1,2,3,4,5,6,7,8,9,'C',0,'OK'].map(k => (
@@ -241,7 +241,7 @@ const description = 'Free 2-player tug of war math game. Solve equations to pull
       <!-- Player 2 (Red) -->
       <div id="p2Panel" class="bg-white rounded-3xl shadow-xl p-5 border-t-8 border-red-600">
         <h3 class="font-bold text-red-600 mb-3 text-center text-lg" id="p2Label">🔴 Red Team</h3>
-        <div id="q2" class="text-center text-3xl md:text-4xl font-black text-slate-900 mb-3 min-h-[2.5rem]">—</div>
+        <div id="q2" dir="ltr" class="text-center text-3xl md:text-4xl font-black text-slate-900 mb-3 min-h-[2.5rem]">—</div>
         <div id="d2" class="bg-slate-50 border-2 border-slate-200 rounded-xl py-3 text-center text-2xl font-bold mb-3 min-h-[3rem] transition-all">0</div>
         <!-- Robot thinking display -->
         <div id="robotDisplay" class="hidden text-center py-6">
@@ -269,7 +269,7 @@ const description = 'Free 2-player tug of war math game. Solve equations to pull
       <h2 id="winTitle" class="text-3xl font-black mb-2">Blue Team Wins!</h2>
       <p id="winSub" class="text-slate-600 mb-6">—</p>
       <div class="flex gap-3">
-        <button id="rematchBtn" class="flex-1 py-3 rounded-2xl font-bold bg-gradient-to-r from-blue-600 to-red-600 text-white shadow-lg active:scale-95 transition">🔄 Rematch</button>
+        <button id="rematchBtn" class="flex-1 py-3 rounded-2xl font-bold bg-gradient-to-r from-blue-600 to-red-600 text-white shadow-lg active:scale-95 transition"data-i18n="tow_rematch">🔄 Rematch</button>
         <button id="changeBtn" class="flex-1 py-3 rounded-2xl font-bold bg-slate-200 text-slate-700 active:scale-95 transition">⚙️ Settings</button>
       </div>
     </div>
@@ -499,13 +499,13 @@ const description = 'Free 2-player tug of war math game. Solve equations to pull
     const delay = baseDelay + rand(0, 1000);
     const correct = difficulty === 'easy' ? 0.65 : difficulty === 'medium' ? 0.80 : 0.92;
 
-    if (robotThinking) robotThinking.textContent = 'Thinking...';
+    if (robotThinking) robotThinking.textContent = window._t('tow_thinking');
 
     // Countdown animation
     let remaining = Math.floor(delay / 1000);
     const countdownTimer = setInterval(() => {
       remaining--;
-      if (remaining > 0 && robotThinking) robotThinking.textContent = `Solving in ${remaining}s...`;
+      if (remaining > 0 && robotThinking) robotThinking.textContent = `${window._t('tow_solving')} ${remaining}s...`;
     }, 1000);
 
     robotTimer = window.setTimeout(() => {
@@ -543,7 +543,7 @@ const description = 'Free 2-player tug of war math game. Solve equations to pull
     if (robotTimer) clearTimeout(robotTimer);
     [523, 659, 784, 1046, 1318].forEach((f, i) => setTimeout(() => beep(f, 0.2), i * 120));
     const isBlue = winner === 1;
-    const name = isBlue ? (mode === 'cpu' ? '🔵 You Win!' : '🔵 Blue Team Wins!') : (mode === 'cpu' ? '🤖 Robot Wins!' : '🔴 Red Team Wins!');
+    const name = isBlue ? (mode === 'cpu' ? '🔵 ' + window._t('tow_you') + ' ' + window._t('tow_wins') : '🔵 ' + window._t('tow_blue') + ' ' + window._t('tow_wins')) : (mode === 'cpu' ? '🤖 ' + window._t('tow_robot') + ' ' + window._t('tow_wins') : '🔴 ' + window._t('tow_red') + ' ' + window._t('tow_wins'));
     if (winTitle) { winTitle.textContent = name; winTitle.className = `text-3xl font-black mb-2 ${isBlue ? 'text-blue-600' : 'text-red-600'}`; }
     if (winSub) winSub.textContent = `Score: ${p1Score} — ${p2Score}`;
     if (winEmoji) winEmoji.textContent = winner === 1 ? '🏆' : (mode === 'cpu' ? '🤖' : '🏆');
@@ -569,8 +569,8 @@ const description = 'Free 2-player tug of war math game. Solve equations to pull
 
     // Configure mode UI
     if (mode === 'cpu') {
-      if (p1Label) p1Label.textContent = '🔵 You (Blue)';
-      if (p2Label) p2Label.textContent = '🤖 Robot (Red)';
+      if (p1Label) p1Label.textContent = '🔵 ' + window._t('tow_you');
+      if (p2Label) p2Label.textContent = '🤖 ' + window._t('tow_robot');
       if (p1Name) p1Name.textContent = 'You';
       if (p2Name) p2Name.textContent = 'Robot';
       robotDisplay?.classList.remove('hidden');
@@ -578,8 +578,8 @@ const description = 'Free 2-player tug of war math game. Solve equations to pull
       document.getElementById('q2')!.textContent = q2.text;
       scheduleRobotAnswer();
     } else {
-      if (p1Label) p1Label.textContent = '🔵 Blue Team';
-      if (p2Label) p2Label.textContent = '🔴 Red Team';
+      if (p1Label) p1Label.textContent = '🔵 ' + window._t('tow_blue');
+      if (p2Label) p2Label.textContent = '🔴 ' + window._t('tow_red');
       if (p1Name) p1Name.textContent = 'Blue';
       if (p2Name) p2Name.textContent = 'Red';
       robotDisplay?.classList.add('hidden');

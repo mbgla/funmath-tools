@@ -6,6 +6,7 @@ interface Props {
   title?: string;
   description?: string;
   pageKey?: string;
+  textContent?: boolean; // true = allow RTL text (for about/privacy pages)
 }
 
 const lang = getLangFromUrl(Astro.url);
@@ -14,10 +15,13 @@ const t = useTranslations(lang);
 const { 
   title = t('site.title' as any),
   description = t('site.description' as any),
+  textContent = false,
 } = Astro.props;
 
 const dir = lang === 'ar' ? 'rtl' : 'ltr';
 const fontClass = lang === 'ar' ? 'font-arabic' : 'font-sans';
+// Main content dir: always LTR for games/tools, RTL only for text pages in Arabic
+const mainDir = (lang === 'ar' && textContent) ? 'rtl' : 'ltr';
 
 // Strip locale prefix to get "bare" path (for language switcher)
 const currentPath = Astro.url.pathname.replace(/^\/(ar|fr)/, '') || '/';
@@ -66,6 +70,225 @@ const currentPath = Astro.url.pathname.replace(/^\/(ar|fr)/, '') || '/';
   <!--
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
   -->
+
+  <!-- Global i18n for JavaScript -->
+  <script is:inline define:vars={{ lang }}>
+    window.__LANG__ = lang;
+    window.__T__ = {
+      en: {
+        // Game common
+        easy: 'Easy', medium: 'Medium', hard: 'Hard',
+        start: 'Start', restart: 'Restart', playAgain: 'Play Again',
+        settings: '⚙️ Settings', correct: 'Correct', wrong: 'Wrong',
+        score: 'Score', best: 'Best', time: 'Time', question: 'Question',
+        // Quick Math
+        qm_title: 'Quick Math Challenge',
+        qm_subtitle: 'Solve as many problems as you can in 60 seconds.',
+        qm_difficulty: 'Choose Difficulty',
+        qm_duration: 'Choose Duration',
+        qm_start: '⚡ Start Challenge',
+        qm_again: '🔄 Play Again',
+        qm_change: '⚙️ Change Settings',
+        qm_correct: '✓ Correct!',
+        qm_timeup: "Time's Up!",
+        // Tug of War
+        tow_2p: '2 Players', tow_cpu: 'vs Robot',
+        tow_mode: 'Game Mode', tow_same: 'Same device',
+        tow_beat: 'Beat the AI', tow_diff: 'Difficulty',
+        tow_first: 'First to how many?', tow_pulls: 'pulls',
+        tow_pulls3: '3 pulls', tow_pulls5: '5 pulls', tow_pulls7: '7 pulls',
+        tow_start: '⚔️ Start Battle', tow_rematch: '🔄 Rematch',
+        tow_you: 'You (Blue)', tow_robot: 'Robot (Red)',
+        tow_blue: 'Blue Team', tow_red: 'Red Team',
+        tow_thinking: 'Thinking...', tow_solving: 'Solving in',
+        tow_wins: 'WINS!', tow_score: 'Score',
+        tow_pull: 'PULL!',
+        // Equation Balance
+        eb_practice: 'Practice', eb_timer: 'Timer Battle',
+        eb_mode: 'Game Mode', eb_10q: '10 questions, no timer',
+        eb_tiltside: 'Tilt scale to your side!',
+        eb_duration: 'Timer Duration', eb_start: '⚖️ Start Practice',
+        eb_start_timer: '⏱️ Start Timer Battle',
+        eb_balanced: '✓ Balanced!',
+        eb_complete: 'Practice Complete!', eb_pts: 'pts',
+        eb_tilted: '⬅ Tilted to you', eb_balanced_label: 'Balanced',
+        eb_tilted_away: 'Tilted away ➡',
+        // Unit Converter
+        uc_school: '📚 School Level', uc_category: '📂 Category',
+        uc_from: 'FROM', uc_to: 'TO', uc_swap: '🔄 Swap',
+        uc_presets: '⚡ QUICK PRESETS',
+        uc_primary: 'Primary', uc_middle: 'Middle', uc_high: 'High School',
+        uc_bac: 'Bac Sciences', uc_all: 'All',
+        // Memory Match
+        mm_moves: 'Moves', mm_matched: 'Matched', mm_pairs: 'pairs',
+        mm_restart: '🔄 Restart', mm_done: 'You did it!',
+        mm_ops: 'Operations',
+        // Math Bingo
+        mb_solve: 'SOLVE THIS', mb_newcall: '🎲 New Call',
+        mb_marked: 'Marked', mb_restart: '🔄 Restart',
+        mb_bingo: 'BINGO!', mb_won: 'You won in',
+        mb_calls: 'calls', mb_newcard: '🔄 New Card',
+        mb_win: 'Win Condition', mb_line: 'Line', mb_corners: 'Corners',
+        mb_blackout: 'Blackout', mb_ops: 'Operations',
+        mb_start: '🎰 Start Bingo',
+        // Math Snake
+        ms_slow: 'Slow + addition', ms_ops_m: '+, −, ×', ms_fast: 'Fast + all ops',
+        ms_eat: 'EAT THE ANSWER TO:', ms_start: '🐍 Start Game',
+        ms_gameover: 'Game Over', ms_newbest: '🏆 New Best Score!',
+        ms_again: '🔄 Play Again',
+        // 2048
+        t_newgame: '🔄 New Game', t_undo: '↶ Undo',
+        t_gameover: 'Game Over', t_won: 'You Won!',
+        // Tic Tac Toe
+        ttt_2p: '2 Players', ttt_cpu: 'vs Computer',
+        ttt_mode: 'Game Mode', ttt_same: 'Same device',
+        ttt_beat: 'Beat the AI', ttt_diff: 'Difficulty',
+        ttt_start: '⭕ Start Game', ttt_rematch: '🔄 Rematch',
+        ttt_p1: 'Player 1', ttt_p2: 'Player 2',
+        ttt_turn: "'s turn", ttt_wins: 'Wins!', ttt_draw: "It's a Draw!",
+        ttt_reset: '🔄 Reset Match',
+        ttt_solve: 'solve fast!', ttt_timeup: 'Time\'s up!',
+        ttt_correct: '✓ Correct!', ttt_wrong: '✗ Was',
+      },
+      ar: {
+        easy: 'سهل', medium: 'متوسط', hard: 'صعب',
+        start: 'ابدأ', restart: 'إعادة', playAgain: 'العب مجدداً',
+        settings: '⚙️ الإعدادات', correct: 'صحيح', wrong: 'خطأ',
+        score: 'النتيجة', best: 'الأفضل', time: 'الوقت', question: 'سؤال',
+        qm_title: 'تحدي الرياضيات السريع',
+        qm_subtitle: 'احل أكبر عدد من المسائل في 60 ثانية.',
+        qm_difficulty: 'اختر الصعوبة', qm_duration: 'اختر المدة',
+        qm_start: '⚡ ابدأ التحدي', qm_again: '🔄 العب مجدداً',
+        qm_change: '⚙️ تغيير الإعدادات',
+        qm_correct: '✓ صحيح!', qm_timeup: 'انتهى الوقت!',
+        tow_2p: 'لاعبان', tow_cpu: 'ضد الروبوت',
+        tow_mode: 'وضع اللعبة', tow_same: 'نفس الجهاز',
+        tow_beat: 'تحدى الذكاء الاصطناعي', tow_diff: 'الصعوبة',
+        tow_first: 'أول من يصل إلى كم؟', tow_pulls: 'شدات',
+        tow_pulls3: '3 شدات', tow_pulls5: '5 شدات', tow_pulls7: '7 شدات',
+        tow_start: '⚔️ ابدأ المعركة', tow_rematch: '🔄 جولة أخرى',
+        tow_you: 'أنت (أزرق)', tow_robot: 'الروبوت (أحمر)',
+        tow_blue: 'الفريق الأزرق', tow_red: 'الفريق الأحمر',
+        tow_thinking: 'يفكر...', tow_solving: 'يحل في',
+        tow_wins: 'يفوز!', tow_score: 'النتيجة', tow_pull: 'اشدد!',
+        eb_practice: 'تدريب', eb_timer: 'معركة الوقت',
+        eb_mode: 'وضع اللعبة', eb_10q: '10 أسئلة بدون توقيت',
+        eb_tiltside: 'أمِّل الميزان لجهتك!',
+        eb_duration: 'مدة الوقت', eb_start: '⚖️ ابدأ التدريب',
+        eb_start_timer: '⏱️ ابدأ معركة الوقت',
+        eb_balanced: '✓ متوازن!',
+        eb_complete: 'اكتمل التدريب!', eb_pts: 'نقاط',
+        eb_tilted: 'مائل لجهتك ⬅', eb_balanced_label: 'متوازن',
+        eb_tilted_away: '➡ مائل بعيداً',
+        uc_school: '📚 المستوى الدراسي', uc_category: '📂 الفئة',
+        uc_from: 'من', uc_to: 'إلى', uc_swap: '🔄 تبديل',
+        uc_presets: '⚡ تحويلات سريعة',
+        uc_primary: 'ابتدائي', uc_middle: 'إعدادي', uc_high: 'ثانوي',
+        uc_bac: 'الباكالوريا', uc_all: 'الكل',
+        mm_moves: 'الحركات', mm_matched: 'مطابق', mm_pairs: 'أزواج',
+        mm_restart: '🔄 إعادة', mm_done: 'أحسنت!',
+        mm_ops: 'العمليات',
+        mb_solve: 'احل هذه', mb_newcall: '🎲 سؤال جديد',
+        mb_marked: 'محدد', mb_restart: '🔄 إعادة',
+        mb_bingo: 'بينغو!', mb_won: 'فزت في',
+        mb_calls: 'أسئلة', mb_newcard: '🔄 بطاقة جديدة',
+        mb_win: 'شرط الفوز', mb_line: 'صف', mb_corners: 'زوايا',
+        mb_blackout: 'كل البطاقة', mb_ops: 'العمليات',
+        mb_start: '🎰 ابدأ البينغو',
+        ms_slow: 'بطيء + جمع', ms_ops_m: '+، −، ×', ms_fast: 'سريع + كل العمليات',
+        ms_eat: 'كل الإجابة الصحيحة لـ:',
+        ms_start: '🐍 ابدأ اللعبة',
+        ms_gameover: 'انتهت اللعبة', ms_newbest: '🏆 رقم قياسي جديد!',
+        ms_again: '🔄 العب مجدداً',
+        t_newgame: '🔄 لعبة جديدة', t_undo: '↶ تراجع',
+        t_gameover: 'انتهت اللعبة', t_won: 'فزت!',
+        ttt_2p: 'لاعبان', ttt_cpu: 'ضد الحاسوب',
+        ttt_mode: 'وضع اللعبة', ttt_same: 'نفس الجهاز',
+        ttt_beat: 'تحدى الذكاء الاصطناعي', ttt_diff: 'الصعوبة',
+        ttt_start: '⭕ ابدأ اللعبة', ttt_rematch: '🔄 جولة أخرى',
+        ttt_p1: 'اللاعب 1', ttt_p2: 'اللاعب 2',
+        ttt_turn: 'دوره', ttt_wins: 'يفوز!', ttt_draw: 'تعادل!',
+        ttt_reset: '🔄 إعادة المباراة',
+        ttt_solve: 'احل بسرعة!', ttt_timeup: 'انتهى الوقت!',
+        ttt_correct: '✓ صحيح!', ttt_wrong: '✗ كانت',
+      },
+      fr: {
+        easy: 'Facile', medium: 'Moyen', hard: 'Difficile',
+        start: 'Commencer', restart: 'Recommencer', playAgain: 'Rejouer',
+        settings: '⚙️ Paramètres', correct: 'Correct', wrong: 'Faux',
+        score: 'Score', best: 'Meilleur', time: 'Temps', question: 'Question',
+        qm_title: 'Défi Math Rapide',
+        qm_subtitle: 'Résolvez le plus de problèmes possible en 60 secondes.',
+        qm_difficulty: 'Choisir la difficulté', qm_duration: 'Choisir la durée',
+        qm_start: '⚡ Commencer le défi', qm_again: '🔄 Rejouer',
+        qm_change: '⚙️ Changer les paramètres',
+        qm_correct: '✓ Correct!', qm_timeup: 'Temps écoulé!',
+        tow_2p: '2 Joueurs', tow_cpu: 'vs Robot',
+        tow_mode: 'Mode de jeu', tow_same: 'Même appareil',
+        tow_beat: 'Battre l\'IA', tow_diff: 'Difficulté',
+        tow_first: 'Premier à combien?', tow_pulls: 'tirages',
+        tow_pulls3: '3 tirages', tow_pulls5: '5 tirages', tow_pulls7: '7 tirages',
+        tow_start: '⚔️ Commencer', tow_rematch: '🔄 Revanche',
+        tow_you: 'Vous (Bleu)', tow_robot: 'Robot (Rouge)',
+        tow_blue: 'Équipe Bleue', tow_red: 'Équipe Rouge',
+        tow_thinking: 'Réflexion...', tow_solving: 'Résout en',
+        tow_wins: 'GAGNE!', tow_score: 'Score', tow_pull: 'TIRER!',
+        eb_practice: 'Entraînement', eb_timer: 'Défi Chrono',
+        eb_mode: 'Mode de jeu', eb_10q: '10 questions, sans chrono',
+        eb_tiltside: 'Faites pencher la balance de votre côté!',
+        eb_duration: 'Durée', eb_start: '⚖️ Commencer',
+        eb_start_timer: '⏱️ Défi Chrono',
+        eb_balanced: '✓ Équilibré!',
+        eb_complete: 'Entraînement terminé!', eb_pts: 'pts',
+        eb_tilted: '⬅ De votre côté', eb_balanced_label: 'Équilibré',
+        eb_tilted_away: 'Côté opposé ➡',
+        uc_school: '📚 Niveau Scolaire', uc_category: '📂 Catégorie',
+        uc_from: 'DE', uc_to: 'VERS', uc_swap: '🔄 Inverser',
+        uc_presets: '⚡ PRÉRÉGLAGES',
+        uc_primary: 'Primaire', uc_middle: 'Collège', uc_high: 'Lycée',
+        uc_bac: 'Bac Sciences', uc_all: 'Tout',
+        mm_moves: 'Coups', mm_matched: 'Trouvé', mm_pairs: 'paires',
+        mm_restart: '🔄 Recommencer', mm_done: 'Bravo!',
+        mm_ops: 'Opérations',
+        mb_solve: 'RÉSOLVEZ', mb_newcall: '🎲 Nouveau',
+        mb_marked: 'Marqué', mb_restart: '🔄 Recommencer',
+        mb_bingo: 'BINGO!', mb_won: 'Gagné en',
+        mb_calls: 'appels', mb_newcard: '🔄 Nouvelle carte',
+        mb_win: 'Condition de victoire', mb_line: 'Ligne',
+        mb_corners: 'Coins', mb_blackout: 'Tout remplir',
+        mb_ops: 'Opérations', mb_start: '🎰 Commencer',
+        ms_slow: 'Lent + addition', ms_ops_m: '+, −, ×',
+        ms_fast: 'Rapide + tout',
+        ms_eat: 'MANGE LA BONNE RÉPONSE:',
+        ms_start: '🐍 Commencer',
+        ms_gameover: 'Fin de partie', ms_newbest: '🏆 Nouveau record!',
+        ms_again: '🔄 Rejouer',
+        t_newgame: '🔄 Nouvelle partie', t_undo: '↶ Annuler',
+        t_gameover: 'Fin de partie', t_won: 'Gagné!',
+        ttt_2p: '2 Joueurs', ttt_cpu: 'vs Ordinateur',
+        ttt_mode: 'Mode de jeu', ttt_same: 'Même appareil',
+        ttt_beat: 'Battre l\'IA', ttt_diff: 'Difficulté',
+        ttt_start: '⭕ Commencer', ttt_rematch: '🔄 Revanche',
+        ttt_p1: 'Joueur 1', ttt_p2: 'Joueur 2',
+        ttt_turn: 'au tour', ttt_wins: 'Gagne!', ttt_draw: 'Match nul!',
+        ttt_reset: '🔄 Réinitialiser',
+        ttt_solve: 'résolvez vite!', ttt_timeup: 'Temps écoulé!',
+        ttt_correct: '✓ Correct!', ttt_wrong: '✗ C\'était',
+      },
+    };
+    // Shorthand helper
+    window._t = function(key) {
+      return (window.__T__[window.__LANG__] || window.__T__.en)[key] || window.__T__.en[key] || key;
+    };
+    // Auto-translate elements with data-i18n attribute
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('[data-i18n]').forEach(function(el) {
+        var key = el.getAttribute('data-i18n');
+        var translated = window._t(key);
+        if (translated && translated !== key) el.textContent = translated;
+      });
+    });
+  </script>
 </head>
 
 <body class={`${fontClass} bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen text-slate-800`}>
@@ -103,7 +326,7 @@ const currentPath = Astro.url.pathname.replace(/^\/(ar|fr)/, '') || '/';
   </header>
   
   <!-- Main -->
-  <main class="max-w-6xl mx-auto px-4 py-8">
+  <main class="max-w-6xl mx-auto px-4 py-8" dir={mainDir}>
     <slot />
   </main>
   
