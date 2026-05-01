@@ -16,22 +16,58 @@ const tools = [
   { id: 'unit-converter', emoji: '📐', gradient: 'from-cyan-400 to-teal-600' },
 ];
 
+// Game names/descriptions translated based on lang
+const gameTranslations: Record<string, Record<string, { name: string; desc: string }>> = {
+  en: {
+    'quick-math': { name: 'Quick Math Challenge', desc: '60-second mental math race.' },
+    'math-memory': { name: 'Math Memory Match', desc: 'Match equations with their answers.' },
+    'tug-of-war': { name: 'Tug of War Math', desc: '2-player math battle. First to 5 wins!' },
+    '2048-math': { name: '2048 Math', desc: 'Combine tiles to reach 2048!' },
+    'math-bingo': { name: 'Math Bingo', desc: 'Classic bingo with math equations.' },
+    'equation-balance': { name: 'Equation Balance', desc: 'Balance both sides of the equation.' },
+    'math-snake': { name: 'Math Snake', desc: 'Classic Snake — eat the right answer!' },
+    'math-tic-tac-toe': { name: 'Math Tic-Tac-Toe', desc: '2-player or vs AI strategy game.' },
+  },
+  ar: {
+    'quick-math': { name: 'تحدي الرياضيات السريع', desc: 'سباق ذهني للرياضيات في 60 ثانية.' },
+    'math-memory': { name: 'لعبة الذاكرة الرياضية', desc: 'طابق المعادلات مع إجاباتها.' },
+    'tug-of-war': { name: 'شد الحبل الرياضي', desc: 'معركة لاعبَين. الأول للوصول لـ 5 يفوز!' },
+    '2048-math': { name: '2048 رياضيات', desc: 'اجمع البلاطات للوصول إلى 2048!' },
+    'math-bingo': { name: 'بينغو الرياضيات', desc: 'بينغو كلاسيكي بمعادلات رياضية.' },
+    'equation-balance': { name: 'توازن المعادلة', desc: 'وازن جانبي المعادلة.' },
+    'math-snake': { name: 'الأفعى الرياضية', desc: 'لعبة الأفعى الكلاسيكية — كل الإجابة الصحيحة!' },
+    'math-tic-tac-toe': { name: 'إكس-أو الرياضي', desc: 'لاعبَين أو ضد الذكاء الاصطناعي.' },
+  },
+  fr: {
+    'quick-math': { name: 'Défi Math Rapide', desc: 'Course de calcul mental en 60 secondes.' },
+    'math-memory': { name: 'Mémoire Mathématique', desc: 'Associez les équations à leurs réponses.' },
+    'tug-of-war': { name: 'Tir à la Corde Math', desc: 'Bataille à 2 joueurs. Premier à 5 gagne!' },
+    '2048-math': { name: '2048 Math', desc: 'Combinez les tuiles pour atteindre 2048!' },
+    'math-bingo': { name: 'Bingo Math', desc: 'Bingo classique avec équations.' },
+    'equation-balance': { name: 'Équilibre d\'Équation', desc: 'Équilibrez les deux côtés de l\'équation.' },
+    'math-snake': { name: 'Serpent Math', desc: 'Serpent classique — mangez la bonne réponse!' },
+    'math-tic-tac-toe': { name: 'Morpion Math', desc: 'À 2 joueurs ou contre l\'IA.' },
+  },
+};
+
 const games = [
-  { id: 'quick-math', emoji: '⚡', gradient: 'from-amber-400 to-orange-600', name: 'Quick Math Challenge', desc: '60-second mental math race.' },
-  { id: 'math-memory', emoji: '🧠', gradient: 'from-violet-400 to-purple-600', name: 'Math Memory Match', desc: 'Match equations with their answers.' },
-  { id: 'tug-of-war', emoji: '⚔️', gradient: 'from-blue-500 to-red-500', name: 'Tug of War Math', desc: '2-player math battle. First to 5 wins!' },
-  { id: '2048-math', emoji: '🎯', gradient: 'from-yellow-500 to-red-500', name: '2048 Math', desc: 'Combine tiles to reach 2048!' },
-  { id: 'math-bingo', emoji: '🎰', gradient: 'from-green-500 to-teal-500', name: 'Math Bingo', desc: 'Classic bingo with math equations.' },
-  { id: 'equation-balance', emoji: '⚖️', gradient: 'from-indigo-500 to-blue-600', name: 'Equation Balance', desc: 'Balance both sides of the equation.' },
-  { id: 'math-snake', emoji: '🐍', gradient: 'from-emerald-400 to-green-600', name: 'Math Snake', desc: 'Classic Snake — eat the right answer!' },
-  { id: 'math-tic-tac-toe', emoji: '⭕', gradient: 'from-cyan-500 to-blue-600', name: 'Math Tic-Tac-Toe', desc: '2-player or vs AI strategy game.' },
+  { id: 'quick-math', emoji: '⚡', gradient: 'from-amber-400 to-orange-600' },
+  { id: 'math-memory', emoji: '🧠', gradient: 'from-violet-400 to-purple-600' },
+  { id: 'tug-of-war', emoji: '⚔️', gradient: 'from-blue-500 to-red-500' },
+  { id: '2048-math', emoji: '🎯', gradient: 'from-yellow-500 to-red-500' },
+  { id: 'math-bingo', emoji: '🎰', gradient: 'from-green-500 to-teal-500' },
+  { id: 'equation-balance', emoji: '⚖️', gradient: 'from-indigo-500 to-blue-600' },
+  { id: 'math-snake', emoji: '🐍', gradient: 'from-emerald-400 to-green-600' },
+  { id: 'math-tic-tac-toe', emoji: '⭕', gradient: 'from-cyan-500 to-blue-600' },
 ];
+
+const gt = gameTranslations[lang] || gameTranslations.en;
 ---
 
 <BaseLayout>
   <section class="text-center py-10">
     <div class="inline-block mb-4 px-4 py-1 bg-brand-100 text-brand-700 rounded-full text-sm font-medium">
-      ✨ 100% Free · Tools & Games · No Signup
+      {t('home.badge' as any)}
     </div>
     <h1 class="text-4xl md:text-6xl font-extrabold text-slate-900 mb-4 leading-tight">
       {t('home.hero.title' as any)}
@@ -41,10 +77,10 @@ const games = [
     </p>
     <div class="flex gap-3 justify-center flex-wrap">
       <a href="#tools" class="inline-block bg-gradient-to-r from-brand-500 to-brand-600 text-white px-7 py-3 rounded-full font-bold shadow-lg shadow-brand-500/30 hover:shadow-xl hover:scale-105 transition">
-        🛠️ Tools
+        {t('home.cta.tools' as any)}
       </a>
       <a href="#games" class="inline-block bg-gradient-to-r from-pink-500 to-purple-600 text-white px-7 py-3 rounded-full font-bold shadow-lg shadow-pink-500/30 hover:shadow-xl hover:scale-105 transition">
-        🎮 Games
+        {t('home.cta.games' as any)}
       </a>
     </div>
   </section>
@@ -53,8 +89,8 @@ const games = [
     <div class="flex items-center gap-3 mb-6">
       <span class="text-3xl">🛠️</span>
       <div>
-        <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900">Math Tools</h2>
-        <p class="text-sm text-slate-600">Practical tools for teachers and students.</p>
+        <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900">{t('home.tools.title' as any)}</h2>
+        <p class="text-sm text-slate-600">{t('home.tools.subtitle' as any)}</p>
       </div>
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -67,7 +103,7 @@ const games = [
             </div>
             <h3 class="text-lg font-bold text-slate-900 mb-1">{t(`tool.${tool.id}.name` as any)}</h3>
             <p class="text-sm text-slate-600">{t(`tool.${tool.id}.desc` as any)}</p>
-            <div class="mt-4 text-brand-500 font-semibold text-sm group-hover:translate-x-1 transition">Try it →</div>
+            <div class="mt-4 text-brand-500 font-semibold text-sm group-hover:translate-x-1 transition">{t('home.tryit' as any)}</div>
           </a>
         );
       })}
@@ -78,56 +114,45 @@ const games = [
     <div class="flex items-center gap-3 mb-6">
       <span class="text-3xl">🎮</span>
       <div>
-        <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900">Math Games</h2>
-        <p class="text-sm text-slate-600">Fun games to practice math skills.</p>
+        <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900">{t('home.games.title' as any)}</h2>
+        <p class="text-sm text-slate-600">{t('home.games.subtitle' as any)}</p>
       </div>
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
       {games.map(game => {
-        const href = game.soon ? '#' : getLocalizedPath(`/games/${game.id}`, lang);
-        const Tag = game.soon ? 'div' : 'a';
+        const href = getLocalizedPath(`/games/${game.id}`, lang);
+        const info = gt[game.id] || { name: game.id, desc: '' };
         return (
-          <Tag 
-            href={!game.soon ? href : undefined}
-            class:list={[
-              'block rounded-2xl p-6 transition group relative overflow-hidden',
-              game.soon ? 'bg-slate-100 opacity-70 cursor-not-allowed' : 'bg-white hover:-translate-y-1 hover:shadow-xl shadow-md cursor-pointer'
-            ]}
-          >
-            {game.soon && (
-              <span class="absolute top-3 end-3 text-[10px] font-bold bg-slate-600 text-white px-2 py-0.5 rounded-full">SOON</span>
-            )}
+          <a href={href} class="block rounded-2xl p-6 transition group relative overflow-hidden bg-white hover:-translate-y-1 hover:shadow-xl shadow-md cursor-pointer">
             <div class:list={['w-14 h-14 rounded-2xl flex items-center justify-center text-3xl mb-4 bg-gradient-to-br text-white font-black', game.gradient]}>
               {game.emoji}
             </div>
-            <h3 class="text-lg font-bold text-slate-900 mb-1">{game.name}</h3>
-            <p class="text-sm text-slate-600">{game.desc}</p>
-            {!game.soon && (
-              <div class="mt-4 text-pink-500 font-semibold text-sm group-hover:translate-x-1 transition">Play now →</div>
-            )}
-          </Tag>
+            <h3 class="text-lg font-bold text-slate-900 mb-1">{info.name}</h3>
+            <p class="text-sm text-slate-600">{info.desc}</p>
+            <div class="mt-4 text-pink-500 font-semibold text-sm group-hover:translate-x-1 transition">{t('home.playnow' as any)}</div>
+          </a>
         );
       })}
     </div>
   </section>
 
   <section class="mt-20 max-w-3xl mx-auto text-center">
-    <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900 mb-4">Why FunMath Tools?</h2>
+    <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900 mb-4">{t('home.why.title' as any)}</h2>
     <div class="grid md:grid-cols-3 gap-6 mt-8 text-start">
       <div class="p-4">
         <div class="text-3xl mb-2">🎓</div>
-        <h3 class="font-bold mb-1">For Teachers</h3>
-        <p class="text-sm text-slate-600">Classroom-ready tools and games that engage students.</p>
+        <h3 class="font-bold mb-1">{t('home.why.teachers.title' as any)}</h3>
+        <p class="text-sm text-slate-600">{t('home.why.teachers.desc' as any)}</p>
       </div>
       <div class="p-4">
         <div class="text-3xl mb-2">🏠</div>
-        <h3 class="font-bold mb-1">For Parents</h3>
-        <p class="text-sm text-slate-600">Support homeschooling with fun, interactive math.</p>
+        <h3 class="font-bold mb-1">{t('home.why.parents.title' as any)}</h3>
+        <p class="text-sm text-slate-600">{t('home.why.parents.desc' as any)}</p>
       </div>
       <div class="p-4">
         <div class="text-3xl mb-2">📱</div>
-        <h3 class="font-bold mb-1">Any Device</h3>
-        <p class="text-sm text-slate-600">Works on phones, tablets, and classroom screens.</p>
+        <h3 class="font-bold mb-1">{t('home.why.device.title' as any)}</h3>
+        <p class="text-sm text-slate-600">{t('home.why.device.desc' as any)}</p>
       </div>
     </div>
   </section>

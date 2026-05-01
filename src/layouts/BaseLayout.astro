@@ -117,48 +117,48 @@ const currentPath = Astro.url.pathname.replace(/^\/(ar|fr)/, '') || '/';
             <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white text-sm font-black">F</div>
             <span class="font-extrabold text-slate-900">FunMath Tools</span>
           </div>
-          <p class="text-sm text-slate-600">Free interactive math tools and games for everyone.</p>
+          <p class="text-sm text-slate-600">{t('footer.tagline' as any)}</p>
         </div>
 
         <!-- Tools -->
         <div>
-          <h3 class="font-bold text-slate-800 mb-3 text-sm">Tools</h3>
+          <h3 class="font-bold text-slate-800 mb-3 text-sm">{t('footer.tools' as any)}</h3>
           <ul class="space-y-2 text-sm">
-            <li><a href="/tools/random-number" class="text-slate-600 hover:text-brand-500">Random Number</a></li>
-            <li><a href="/tools/dice" class="text-slate-600 hover:text-brand-500">Dice Roller</a></li>
-            <li><a href="/tools/coin-flip" class="text-slate-600 hover:text-brand-500">Coin Flip</a></li>
-            <li><a href="/tools/stopwatch" class="text-slate-600 hover:text-brand-500">Stopwatch</a></li>
-            <li><a href="/#tools" class="text-brand-500 hover:underline font-semibold">View all →</a></li>
+            <li><a href={getLocalizedPath('/tools/random-number', lang)} class="text-slate-600 hover:text-brand-500">{t('tool.random-number.name' as any)}</a></li>
+            <li><a href={getLocalizedPath('/tools/dice', lang)} class="text-slate-600 hover:text-brand-500">{t('tool.dice.name' as any)}</a></li>
+            <li><a href={getLocalizedPath('/tools/coin-flip', lang)} class="text-slate-600 hover:text-brand-500">{t('tool.coin-flip.name' as any)}</a></li>
+            <li><a href={getLocalizedPath('/tools/stopwatch', lang)} class="text-slate-600 hover:text-brand-500">{t('tool.stopwatch.name' as any)}</a></li>
+            <li><a href={getLocalizedPath('/', lang) + '#tools'} class="text-brand-500 hover:underline font-semibold">{t('footer.viewall' as any)}</a></li>
           </ul>
         </div>
 
         <!-- Games -->
         <div>
-          <h3 class="font-bold text-slate-800 mb-3 text-sm">Games</h3>
+          <h3 class="font-bold text-slate-800 mb-3 text-sm">{t('footer.games' as any)}</h3>
           <ul class="space-y-2 text-sm">
-            <li><a href="/games/quick-math" class="text-slate-600 hover:text-brand-500">Quick Math</a></li>
-            <li><a href="/games/2048-math" class="text-slate-600 hover:text-brand-500">2048 Math</a></li>
-            <li><a href="/games/tug-of-war" class="text-slate-600 hover:text-brand-500">Tug of War</a></li>
-            <li><a href="/games/math-snake" class="text-slate-600 hover:text-brand-500">Math Snake</a></li>
-            <li><a href="/#games" class="text-brand-500 hover:underline font-semibold">View all →</a></li>
+            <li><a href={getLocalizedPath('/games/quick-math', lang)} class="text-slate-600 hover:text-brand-500">Quick Math</a></li>
+            <li><a href={getLocalizedPath('/games/2048-math', lang)} class="text-slate-600 hover:text-brand-500">2048 Math</a></li>
+            <li><a href={getLocalizedPath('/games/tug-of-war', lang)} class="text-slate-600 hover:text-brand-500">Tug of War</a></li>
+            <li><a href={getLocalizedPath('/games/math-snake', lang)} class="text-slate-600 hover:text-brand-500">Math Snake</a></li>
+            <li><a href={getLocalizedPath('/', lang) + '#games'} class="text-brand-500 hover:underline font-semibold">{t('footer.viewall' as any)}</a></li>
           </ul>
         </div>
 
         <!-- Site -->
         <div>
-          <h3 class="font-bold text-slate-800 mb-3 text-sm">Site</h3>
+          <h3 class="font-bold text-slate-800 mb-3 text-sm">{t('footer.site' as any)}</h3>
           <ul class="space-y-2 text-sm">
-            <li><a href="/about" class="text-slate-600 hover:text-brand-500">About</a></li>
-            <li><a href="/contact" class="text-slate-600 hover:text-brand-500">Contact</a></li>
-            <li><a href="/privacy" class="text-slate-600 hover:text-brand-500">Privacy Policy</a></li>
-            <li><a href="/terms" class="text-slate-600 hover:text-brand-500">Terms of Service</a></li>
+            <li><a href={getLocalizedPath('/about', lang)} class="text-slate-600 hover:text-brand-500">{t('footer.about' as any)}</a></li>
+            <li><a href={getLocalizedPath('/contact', lang)} class="text-slate-600 hover:text-brand-500">{t('footer.contact' as any)}</a></li>
+            <li><a href={getLocalizedPath('/privacy', lang)} class="text-slate-600 hover:text-brand-500">{t('footer.privacy' as any)}</a></li>
+            <li><a href={getLocalizedPath('/terms', lang)} class="text-slate-600 hover:text-brand-500">{t('footer.terms' as any)}</a></li>
           </ul>
         </div>
       </div>
 
       <div class="border-t border-slate-200 pt-6 flex flex-col md:flex-row justify-between items-center gap-2 text-sm text-slate-500">
         <p>{t('common.footer' as any)}</p>
-        <p>Made with ❤️ for teachers, students & parents</p>
+        <p>{t('footer.madewith' as any)}</p>
       </div>
     </div>
   </footer>

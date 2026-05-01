@@ -25,6 +25,20 @@ const description = 'Free online equation balance game. Watch the scale tilt as 
 
   <!-- Setup screen -->
   <div id="setupScreen" class="max-w-2xl mx-auto bg-white rounded-3xl shadow-xl p-6 md:p-8">
+    <h2 class="font-bold text-lg text-slate-800 mb-4 text-center">Game Mode</h2>
+    <div class="grid grid-cols-2 gap-3 mb-6">
+      <button class="gamemode-btn p-4 rounded-2xl font-bold border-2 border-slate-200 hover:border-indigo-500 transition" data-gamemode="practice" data-active="true">
+        <div class="text-2xl mb-1">📚</div>
+        <div>Practice</div>
+        <div class="text-xs text-slate-500 font-normal">10 questions, no timer</div>
+      </button>
+      <button class="gamemode-btn p-4 rounded-2xl font-bold border-2 border-slate-200 hover:border-indigo-500 transition" data-gamemode="timer">
+        <div class="text-2xl mb-1">⏱️</div>
+        <div>Timer Battle</div>
+        <div class="text-xs text-slate-500 font-normal">Tilt scale to your side!</div>
+      </button>
+    </div>
+
     <h2 class="font-bold text-lg text-slate-800 mb-4 text-center">Choose Difficulty</h2>
     <div class="grid grid-cols-3 gap-3 mb-6">
       <button class="diff-btn p-4 rounded-2xl font-bold border-2 border-slate-200 hover:border-indigo-500 transition" data-diff="easy" data-active="true">
@@ -44,8 +58,18 @@ const description = 'Free online equation balance game. Watch the scale tilt as 
       </button>
     </div>
 
+    <div id="timerDurationPicker" class="hidden mb-6">
+      <h2 class="font-bold text-lg text-slate-800 mb-4 text-center">Timer Duration</h2>
+      <div class="grid grid-cols-3 gap-3">
+        <button class="dur-btn py-3 rounded-xl font-bold border-2 border-slate-200 hover:border-indigo-500 transition" data-dur="60">60s</button>
+        <button class="dur-btn py-3 rounded-xl font-bold border-2 border-slate-200 hover:border-indigo-500 transition" data-dur="120" data-active="true">2 min</button>
+        <button class="dur-btn py-3 rounded-xl font-bold border-2 border-slate-200 hover:border-indigo-500 transition" data-dur="180">3 min</button>
+      </div>
+    </div>
+
     <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 mb-6 text-sm text-indigo-800">
-      <strong>📚 Example:</strong> If you see <code class="bg-white px-2 py-1 rounded font-mono">5 + 3 = 6 + ?</code>, the answer is <strong>2</strong> (because both sides equal 8).
+      <strong>📚 Example:</strong> If you see <code class="bg-white px-2 py-1 rounded font-mono">5 + 3 = 6 + ?</code>, the answer is <strong>2</strong> (both sides = 8).
+      <div id="timerModeHint" class="hidden mt-2"><strong>⏱️ Timer Mode:</strong> Balance as many equations as possible before time runs out. Each correct = +1 point. Try to tilt the scale to your side!</div>
     </div>
 
     <button id="startBtn" class="w-full py-4 rounded-2xl font-bold text-lg bg-gradient-to-r from-indigo-500 to-blue-600 text-white shadow-lg active:scale-95 transition">
@@ -55,8 +79,8 @@ const description = 'Free online equation balance game. Watch the scale tilt as 
 
   <!-- Game screen -->
   <div id="gameScreen" class="hidden max-w-2xl mx-auto">
-    <!-- Stats -->
-    <div class="grid grid-cols-3 gap-2 mb-4">
+    <!-- Practice mode stats -->
+    <div id="practiceStats" class="grid grid-cols-3 gap-2 mb-4">
       <div class="bg-white rounded-xl p-2 text-center shadow text-sm">
         <div class="text-slate-500 text-xs">Question</div>
         <div class="font-bold"><span id="qNum">1</span>/10</div>
@@ -68,6 +92,32 @@ const description = 'Free online equation balance game. Watch the scale tilt as 
       <div class="bg-red-50 rounded-xl p-2 text-center shadow text-sm">
         <div class="text-red-600 text-xs">Wrong</div>
         <div class="font-bold text-red-700" id="wrong">0</div>
+      </div>
+    </div>
+
+    <!-- Timer mode stats -->
+    <div id="timerStats" class="hidden mb-4">
+      <div class="flex justify-between items-center mb-2">
+        <div class="flex items-center gap-2">
+          <div class="bg-green-100 text-green-700 px-3 py-1 rounded-full font-bold text-sm">
+            ✓ <span id="timerScore">0</span> pts
+          </div>
+          <div class="bg-red-100 text-red-700 px-3 py-1 rounded-full font-bold text-sm">
+            ✗ <span id="timerWrong">0</span>
+          </div>
+        </div>
+        <div id="timerDisplay" class="bg-indigo-100 text-indigo-700 px-4 py-2 rounded-full font-black text-xl">
+          ⏱ <span id="timeLeft">120</span>s
+        </div>
+      </div>
+      <!-- Scale tilt meter (visual feedback for timer mode) -->
+      <div class="h-3 bg-slate-200 rounded-full overflow-hidden">
+        <div id="scaleMeter" class="h-full bg-gradient-to-r from-indigo-500 to-blue-600 transition-all duration-500 rounded-full" style="width: 50%; margin-left: 0%"></div>
+      </div>
+      <div class="flex justify-between text-xs mt-1 text-slate-500">
+        <span>⬅ Tilted to you</span>
+        <span>Balanced</span>
+        <span>Tilted away ➡</span>
       </div>
     </div>
 
@@ -481,6 +531,73 @@ const description = 'Free online equation balance game. Watch the scale tilt as 
     }
   }
 
+  let gameMode = 'practice';
+  let timerDuration = 120;
+  let timerRemaining = 120;
+  let timerInterval: number | null = null;
+  let timerScore = 0;
+  let timerWrong = 0;
+  let scaleBalance = 0; // -10 (full left) to +10 (full right/wrong), 0 = balanced
+
+  const timerStats = document.getElementById('timerStats');
+  const practiceStats = document.getElementById('practiceStats');
+  const timerDisplay = document.getElementById('timerDisplay');
+  const timeLeftEl = document.getElementById('timeLeft');
+  const timerScoreEl = document.getElementById('timerScore');
+  const timerWrongEl = document.getElementById('timerWrong');
+  const scaleMeter = document.getElementById('scaleMeter');
+
+  function updateScaleMeter() {
+    if (!scaleMeter) return;
+    // scaleBalance: negative = tilted to player (good), positive = away (bad)
+    // Convert to visual: 0 balance = 50%, left tilt = >50%, right tilt = <50%
+    const pct = 50 + scaleBalance * 3;
+    const clamped = Math.max(10, Math.min(90, pct));
+    scaleMeter.style.width = `${clamped}%`;
+    if (scaleBalance < -2) scaleMeter.className = scaleMeter.className.replace(/from-\S+/, 'from-green-400').replace(/to-\S+/, 'to-emerald-500');
+    else if (scaleBalance > 2) scaleMeter.className = scaleMeter.className.replace(/from-\S+/, 'from-red-400').replace(/to-\S+/, 'to-red-500');
+    else scaleMeter.className = scaleMeter.className.replace(/from-\S+/, 'from-indigo-500').replace(/to-\S+/, 'to-blue-600');
+  }
+
+  function startTimerCountdown() {
+    timerRemaining = timerDuration;
+    if (timeLeftEl) timeLeftEl.textContent = String(timerDuration);
+    if (timerInterval) clearInterval(timerInterval);
+
+    const startTime = Date.now();
+    timerInterval = window.setInterval(() => {
+      const elapsed = (Date.now() - startTime) / 1000;
+      timerRemaining = Math.max(0, timerDuration - elapsed);
+      if (timeLeftEl) timeLeftEl.textContent = String(Math.ceil(timerRemaining));
+
+      if (timerRemaining <= 10 && timerDisplay) {
+        timerDisplay.classList.remove('bg-indigo-100', 'text-indigo-700');
+        timerDisplay.classList.add('bg-red-100', 'text-red-700');
+      }
+
+      if (timerRemaining <= 0) {
+        clearInterval(timerInterval!);
+        endTimerGame();
+      }
+    }, 100);
+  }
+
+  function endTimerGame() {
+    if (timerInterval) clearInterval(timerInterval);
+    gameScreen?.classList.add('hidden');
+    resultsScreen?.classList.remove('hidden');
+    if (finalScoreEl) finalScoreEl.textContent = `${timerScore} pts`;
+
+    const pct = timerScore + timerWrong > 0 ? Math.round(timerScore / (timerScore + timerWrong) * 100) : 0;
+    if (resultEmoji && resultMsg) {
+      if (timerScore >= 15) { resultEmoji.textContent = '🏆'; resultMsg.textContent = 'Scale master! Incredible speed!'; }
+      else if (timerScore >= 10) { resultEmoji.textContent = '⭐'; resultMsg.textContent = `${pct}% accuracy. Excellent!`; }
+      else if (timerScore >= 5) { resultEmoji.textContent = '👍'; resultMsg.textContent = 'Good pace! Keep going!'; }
+      else { resultEmoji.textContent = '📚'; resultMsg.textContent = 'Practice makes perfect!'; }
+    }
+    [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => beep(f, 0.2), i * 100));
+  }
+
   function startGame() {
     setupScreen?.classList.add('hidden');
     resultsScreen?.classList.add('hidden');
@@ -488,16 +605,116 @@ const description = 'Free online equation balance game. Watch the scale tilt as 
     current = 0;
     correct = 0;
     wrong = 0;
-    if (correctEl) correctEl.textContent = '0';
-    if (wrongEl) wrongEl.textContent = '0';
+    timerScore = 0;
+    timerWrong = 0;
+    scaleBalance = 0;
+
+    if (timerInterval) clearInterval(timerInterval);
+    if (timerDisplay) {
+      timerDisplay.classList.remove('bg-red-100', 'text-red-700');
+      timerDisplay.classList.add('bg-indigo-100', 'text-indigo-700');
+    }
+
+    if (gameMode === 'timer') {
+      practiceStats?.classList.add('hidden');
+      timerStats?.classList.remove('hidden');
+      if (timerScoreEl) timerScoreEl.textContent = '0';
+      if (timerWrongEl) timerWrongEl.textContent = '0';
+      updateScaleMeter();
+      startTimerCountdown();
+    } else {
+      practiceStats?.classList.remove('hidden');
+      timerStats?.classList.add('hidden');
+      if (correctEl) correctEl.textContent = '0';
+      if (wrongEl) wrongEl.textContent = '0';
+    }
+
     genQuestion();
   }
 
+  // Override submitAnswer to support timer mode
+  const originalSubmit = submitAnswer;
+  function submitAnswerWithTimer() {
+    if (gameMode !== 'timer') { originalSubmit(); return; }
+    const val = parseInt(answerInput.value);
+    if (isNaN(val)) return;
+
+    if (val === currentAnswer) {
+      timerScore++;
+      scaleBalance = Math.max(-10, scaleBalance - 1);
+      beep(880, 0.1);
+      setTimeout(() => beep(1100, 0.15), 80);
+      if (timerScoreEl) timerScoreEl.textContent = String(timerScore);
+      if (feedbackEl) feedbackEl.innerHTML = '<span class="text-green-600">✓ Balanced!</span>';
+      tiltScale('balanced');
+      showSparkles();
+      updateScaleMeter();
+    } else {
+      timerWrong++;
+      scaleBalance = Math.min(10, scaleBalance + 1);
+      beep(220, 0.2, 'sawtooth');
+      if (timerWrongEl) timerWrongEl.textContent = String(timerWrong);
+      if (feedbackEl) feedbackEl.innerHTML = `<span class="text-red-600">✗ Was ${currentAnswer}</span>`;
+      shakeBeam();
+      setTimeout(() => { tiltScale(val < currentAnswer ? 'left' : 'right'); dropWeight(val < currentAnswer ? 'left' : 'right'); }, 300);
+      updateScaleMeter();
+    }
+
+    setTimeout(() => {
+      genQuestion();
+    }, 1200);
+  }
+
   function showSetup() {
+    if (timerInterval) clearInterval(timerInterval);
     setupScreen?.classList.remove('hidden');
     gameScreen?.classList.add('hidden');
     resultsScreen?.classList.add('hidden');
   }
+
+  // Game mode buttons
+  document.querySelectorAll('.gamemode-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.gamemode-btn').forEach(b => {
+        b.removeAttribute('data-active');
+        b.classList.remove('border-indigo-500', 'bg-indigo-50');
+        b.classList.add('border-slate-200');
+      });
+      btn.setAttribute('data-active', 'true');
+      btn.classList.remove('border-slate-200');
+      btn.classList.add('border-indigo-500', 'bg-indigo-50');
+      gameMode = (btn as HTMLElement).dataset.gamemode || 'practice';
+      const timerPicker = document.getElementById('timerDurationPicker');
+      const hint = document.getElementById('timerModeHint');
+      const startBtnEl = document.getElementById('startBtn');
+      if (gameMode === 'timer') {
+        timerPicker?.classList.remove('hidden');
+        hint?.classList.remove('hidden');
+        if (startBtnEl) startBtnEl.textContent = '⏱️ Start Timer Battle';
+      } else {
+        timerPicker?.classList.add('hidden');
+        hint?.classList.add('hidden');
+        if (startBtnEl) startBtnEl.textContent = '⚖️ Start Practice';
+      }
+    });
+  });
+  document.querySelector('.gamemode-btn[data-active="true"]')?.classList.add('border-indigo-500', 'bg-indigo-50');
+
+  // Duration buttons
+  document.querySelectorAll('.dur-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.dur-btn').forEach(b => {
+        b.removeAttribute('data-active');
+        b.classList.remove('border-indigo-500', 'bg-indigo-50');
+        b.classList.add('border-slate-200');
+      });
+      btn.setAttribute('data-active', 'true');
+      btn.classList.remove('border-slate-200');
+      btn.classList.add('border-indigo-500', 'bg-indigo-50');
+      timerDuration = parseInt((btn as HTMLElement).dataset.dur || '120');
+    });
+  });
+  document.querySelector('.dur-btn[data-active="true"]')?.classList.add('border-indigo-500', 'bg-indigo-50');
 
   document.querySelectorAll('.diff-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -519,10 +736,10 @@ const description = 'Free online equation balance game. Watch the scale tilt as 
   }
 
   startBtn?.addEventListener('click', startGame);
-  submitBtn?.addEventListener('click', submitAnswer);
+  submitBtn?.addEventListener('click', () => gameMode === 'timer' ? submitAnswerWithTimer() : submitAnswer());
   againBtn?.addEventListener('click', startGame);
   changeBtn?.addEventListener('click', showSetup);
   answerInput?.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') submitAnswer();
+    if (e.key === 'Enter') gameMode === 'timer' ? submitAnswerWithTimer() : submitAnswer();
   });
 </script>

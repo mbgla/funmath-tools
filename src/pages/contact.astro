@@ -1,71 +1,83 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-const title = 'Contact — FunMath Tools';
-const description = 'Get in touch with FunMath Tools. Send feedback, suggestions, or report bugs.';
+import { useTranslations, getLangFromUrl } from '../i18n/ui';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+
+const content = {
+  en: {
+    title: 'Contact Us', subtitle: 'We\'d love to hear from you!',
+    email_label: 'Email Us', suggest_label: 'Suggestions', suggest_desc: 'Have a game idea? Tell us!',
+    reasons_title: 'What to Contact Us About',
+    r1_title: 'Bug Reports', r1_desc: 'Found something broken? Let us know!',
+    r2_title: 'Feature Requests', r2_desc: 'Suggest new tools or games.',
+    r3_title: 'Partnerships', r3_desc: 'Schools, organizations, or collaborations.',
+    r4_title: 'Feedback', r4_desc: 'Tell us how we can improve.',
+    response: '📬 Response time: We typically respond within 24-48 hours.',
+  },
+  ar: {
+    title: 'تواصل معنا', subtitle: 'يسعدنا سماعك!',
+    email_label: 'راسلنا', suggest_label: 'اقتراحات', suggest_desc: 'لديك فكرة للعبة؟ أخبرنا!',
+    reasons_title: 'سبب التواصل',
+    r1_title: 'تقارير الأخطاء', r1_desc: 'وجدت شيئاً معطلاً؟ أخبرنا!',
+    r2_title: 'طلبات الميزات', r2_desc: 'اقترح أدوات أو ألعاباً جديدة.',
+    r3_title: 'شراكات', r3_desc: 'مدارس ومنظمات وتعاونات.',
+    r4_title: 'ملاحظات', r4_desc: 'أخبرنا كيف يمكننا التحسين.',
+    response: '📬 وقت الاستجابة: نرد عادةً خلال 24-48 ساعة.',
+  },
+  fr: {
+    title: 'Contactez-Nous', subtitle: 'Nous serions ravis de vous entendre!',
+    email_label: 'Email', suggest_label: 'Suggestions', suggest_desc: 'Vous avez une idée de jeu? Dites-le nous!',
+    reasons_title: 'Pourquoi Nous Contacter',
+    r1_title: 'Rapports de bugs', r1_desc: 'Quelque chose ne fonctionne pas? Dites-le nous!',
+    r2_title: 'Demandes de fonctionnalités', r2_desc: 'Suggérez de nouveaux outils ou jeux.',
+    r3_title: 'Partenariats', r3_desc: 'Écoles, organisations ou collaborations.',
+    r4_title: 'Commentaires', r4_desc: 'Dites-nous comment nous pouvons nous améliorer.',
+    response: '📬 Délai de réponse: Nous répondons généralement sous 24-48 heures.',
+  },
+};
+
+const c = content[lang as keyof typeof content] || content.en;
 ---
 
-<BaseLayout title={title} description={description}>
+<BaseLayout title={`${c.title} — FunMath Tools`} description={c.subtitle}>
   <div class="max-w-2xl mx-auto py-8">
     <nav class="text-sm text-slate-500 mb-6">
-      <a href="/" class="hover:text-brand-500">Home</a>
+      <a href="/" class="hover:text-brand-500">{t('nav.home' as any)}</a>
       <span class="mx-2">/</span>
-      <span>Contact</span>
+      <span>{c.title}</span>
     </nav>
 
     <div class="text-center mb-10">
       <div class="inline-flex w-20 h-20 rounded-3xl bg-gradient-to-br from-green-400 to-teal-600 items-center justify-center text-5xl mb-4">📧</div>
-      <h1 class="text-4xl font-extrabold text-slate-900 mb-3">Contact Us</h1>
-      <p class="text-slate-600">We'd love to hear from you!</p>
+      <h1 class="text-4xl font-extrabold text-slate-900 mb-3">{c.title}</h1>
+      <p class="text-slate-600">{c.subtitle}</p>
     </div>
 
     <div class="bg-white rounded-3xl shadow-xl p-8">
       <div class="grid md:grid-cols-2 gap-6 mb-8">
         <div class="bg-blue-50 rounded-2xl p-6 text-center">
           <div class="text-4xl mb-2">📧</div>
-          <h3 class="font-bold mb-1">Email Us</h3>
-          <a href="mailto:contact@funmath.tools" class="text-brand-500 hover:underline font-semibold">
-            contact@funmath.tools
-          </a>
+          <h3 class="font-bold mb-1">{c.email_label}</h3>
+          <a href="mailto:contact@funmath.tools" class="text-brand-500 hover:underline font-semibold">contact@funmath.tools</a>
         </div>
-
         <div class="bg-purple-50 rounded-2xl p-6 text-center">
           <div class="text-4xl mb-2">💡</div>
-          <h3 class="font-bold mb-1">Suggestions</h3>
-          <p class="text-sm text-slate-600">Have a game idea? Tell us!</p>
+          <h3 class="font-bold mb-1">{c.suggest_label}</h3>
+          <p class="text-sm text-slate-600">{c.suggest_desc}</p>
         </div>
       </div>
 
-      <h2 class="text-xl font-bold mb-3">What to Contact Us About</h2>
+      <h2 class="text-xl font-bold mb-4 text-slate-900">{c.reasons_title}</h2>
       <ul class="space-y-3 text-slate-700 mb-6">
-        <li class="flex items-start gap-3">
-          <span class="text-2xl">🐛</span>
-          <div>
-            <strong>Bug Reports:</strong> Found something broken? Let us know!
-          </div>
-        </li>
-        <li class="flex items-start gap-3">
-          <span class="text-2xl">💡</span>
-          <div>
-            <strong>Feature Requests:</strong> Suggest new tools or games.
-          </div>
-        </li>
-        <li class="flex items-start gap-3">
-          <span class="text-2xl">🤝</span>
-          <div>
-            <strong>Partnerships:</strong> Schools, organizations, or collaborations.
-          </div>
-        </li>
-        <li class="flex items-start gap-3">
-          <span class="text-2xl">📝</span>
-          <div>
-            <strong>Feedback:</strong> Tell us how we can improve.
-          </div>
-        </li>
+        <li class="flex items-start gap-3"><span class="text-2xl">🐛</span><div><strong>{c.r1_title}:</strong> {c.r1_desc}</div></li>
+        <li class="flex items-start gap-3"><span class="text-2xl">💡</span><div><strong>{c.r2_title}:</strong> {c.r2_desc}</div></li>
+        <li class="flex items-start gap-3"><span class="text-2xl">🤝</span><div><strong>{c.r3_title}:</strong> {c.r3_desc}</div></li>
+        <li class="flex items-start gap-3"><span class="text-2xl">📝</span><div><strong>{c.r4_title}:</strong> {c.r4_desc}</div></li>
       </ul>
 
-      <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
-        <strong>📬 Response time:</strong> We typically respond within 24-48 hours.
-      </div>
+      <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">{c.response}</div>
     </div>
   </div>
 </BaseLayout>

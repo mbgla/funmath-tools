@@ -1,76 +1,71 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-const title = 'Terms of Service — FunMath Tools';
-const description = 'Terms of service for using FunMath Tools website.';
+import { useTranslations, getLangFromUrl } from '../../i18n/ui';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+
+const content = {
+  en: {
+    title: 'Terms of Service', updated: 'Last updated: April 2026',
+    intro: 'Welcome to FunMath Tools. By using our website, you agree to these Terms of Service.',
+    s: [
+      { title: '1. Acceptance', text: 'By accessing FunMath Tools, you agree to be bound by these terms.' },
+      { title: '2. Permitted Use', text: 'You may use our tools and games for personal, educational, and classroom purposes. You may share links to our website.' },
+      { title: '3. Prohibited Use', text: 'You may not copy or redistribute our content commercially, use automated scraping tools, or attempt to disrupt website security.' },
+      { title: '4. Intellectual Property', text: 'All content on FunMath Tools is our property. Educational classroom use is freely permitted.' },
+      { title: '5. Disclaimer', text: 'FunMath Tools is provided "as is" without warranties. We strive for accuracy but cannot guarantee error-free content.' },
+      { title: '6. Contact', text: 'Questions? Contact us at contact@funmath.tools' },
+    ],
+  },
+  ar: {
+    title: 'شروط الاستخدام', updated: 'آخر تحديث: أبريل 2026',
+    intro: 'مرحباً بكم في فن-ماث تولز. باستخدام موقعنا، فإنكم توافقون على شروط الاستخدام هذه.',
+    s: [
+      { title: '١. القبول', text: 'بالوصول إلى فن-ماث تولز، توافق على الالتزام بهذه الشروط.' },
+      { title: '٢. الاستخدام المسموح', text: 'يمكنك استخدام أدواتنا وألعابنا للأغراض الشخصية والتعليمية والفصول الدراسية. يمكنك مشاركة روابط موقعنا.' },
+      { title: '٣. الاستخدام المحظور', text: 'لا يجوز نسخ أو إعادة توزيع محتوانا تجارياً، أو استخدام أدوات الاستخراج الآلي، أو محاولة تعطيل أمان الموقع.' },
+      { title: '٤. الملكية الفكرية', text: 'جميع محتويات فن-ماث تولز ملكنا. الاستخدام التعليمي في الفصول مسموح به مجاناً.' },
+      { title: '٥. إخلاء المسؤولية', text: 'يُقدَّم فن-ماث تولز "كما هو" دون ضمانات. نسعى للدقة لكن لا نضمن محتوى خالياً من الأخطاء.' },
+      { title: '٦. التواصل', text: 'أسئلة؟ تواصل معنا على contact@funmath.tools' },
+    ],
+  },
+  fr: {
+    title: 'Conditions d\'Utilisation', updated: 'Dernière mise à jour: Avril 2026',
+    intro: 'Bienvenue sur FunMath Tools. En utilisant notre site, vous acceptez ces Conditions d\'Utilisation.',
+    s: [
+      { title: '1. Acceptation', text: 'En accédant à FunMath Tools, vous acceptez d\'être lié par ces conditions.' },
+      { title: '2. Utilisation Permise', text: 'Vous pouvez utiliser nos outils et jeux à des fins personnelles, éducatives et scolaires.' },
+      { title: '3. Utilisation Interdite', text: 'Vous ne pouvez pas copier ou redistribuer notre contenu commercialement, utiliser des outils de scraping automatiques.' },
+      { title: '4. Propriété Intellectuelle', text: 'Tout le contenu de FunMath Tools est notre propriété. L\'utilisation éducative en classe est librement autorisée.' },
+      { title: '5. Avertissement', text: 'FunMath Tools est fourni "tel quel" sans garanties. Nous nous efforçons d\'être précis mais ne pouvons garantir un contenu sans erreur.' },
+      { title: '6. Contact', text: 'Questions? Contactez-nous à contact@funmath.tools' },
+    ],
+  },
+};
+
+const c = content[lang as keyof typeof content] || content.en;
 ---
 
-<BaseLayout title={title} description={description}>
+<BaseLayout title={`${c.title} — FunMath Tools`} description={c.intro}>
   <div class="max-w-3xl mx-auto py-8">
     <nav class="text-sm text-slate-500 mb-6">
-      <a href="/" class="hover:text-brand-500">Home</a>
+      <a href="/" class="hover:text-brand-500">{t('nav.home' as any)}</a>
       <span class="mx-2">/</span>
-      <span>Terms of Service</span>
+      <span>{c.title}</span>
     </nav>
 
-    <h1 class="text-4xl font-extrabold text-slate-900 mb-2">Terms of Service</h1>
-    <p class="text-slate-500 mb-8">Last updated: April 2026</p>
+    <h1 class="text-4xl font-extrabold text-slate-900 mb-2">{c.title}</h1>
+    <p class="text-slate-500 mb-8">{c.updated}</p>
 
-    <div class="bg-white rounded-3xl shadow-lg p-8 prose prose-slate max-w-none">
-      <p class="text-slate-700">
-        Welcome to FunMath Tools. By using our website, you agree to these Terms of Service.
-      </p>
-
-      <h2 class="text-2xl font-bold mt-8 mb-3">1. Acceptance of Terms</h2>
-      <p class="text-slate-700">
-        By accessing FunMath Tools, you agree to be bound by these terms. If you don't agree, please don't use the site.
-      </p>
-
-      <h2 class="text-2xl font-bold mt-8 mb-3">2. Use of Service</h2>
-      <p class="text-slate-700 mb-3">FunMath Tools is provided free of charge. You may:</p>
-      <ul class="space-y-2 text-slate-700">
-        <li>Use our tools and games for personal, educational, and classroom purposes</li>
-        <li>Share links to our website</li>
-        <li>Use our content with proper attribution for non-commercial educational purposes</li>
-      </ul>
-
-      <h2 class="text-2xl font-bold mt-8 mb-3">3. Prohibited Use</h2>
-      <p class="text-slate-700 mb-3">You may not:</p>
-      <ul class="space-y-2 text-slate-700">
-        <li>Copy, modify, or redistribute our content commercially without permission</li>
-        <li>Use automated tools to scrape or abuse our services</li>
-        <li>Attempt to disrupt or compromise the website's security</li>
-        <li>Use our service for any illegal purpose</li>
-      </ul>
-
-      <h2 class="text-2xl font-bold mt-8 mb-3">4. Intellectual Property</h2>
-      <p class="text-slate-700">
-        All content on FunMath Tools, including games, tools, designs, and code, is the property of FunMath Tools unless otherwise stated. Educational use in classrooms is freely permitted.
-      </p>
-
-      <h2 class="text-2xl font-bold mt-8 mb-3">5. Disclaimer</h2>
-      <p class="text-slate-700">
-        FunMath Tools is provided "as is" without warranties of any kind. While we strive for accuracy, we don't guarantee that all content is error-free or always available.
-      </p>
-
-      <h2 class="text-2xl font-bold mt-8 mb-3">6. Limitation of Liability</h2>
-      <p class="text-slate-700">
-        FunMath Tools and its operators are not liable for any damages arising from the use or inability to use this website.
-      </p>
-
-      <h2 class="text-2xl font-bold mt-8 mb-3">7. Third-Party Content</h2>
-      <p class="text-slate-700">
-        Our site may contain ads from third parties (such as Google AdSense). We are not responsible for the content or practices of third-party advertisers.
-      </p>
-
-      <h2 class="text-2xl font-bold mt-8 mb-3">8. Changes to Terms</h2>
-      <p class="text-slate-700">
-        We may update these Terms at any time. Continued use after changes means you accept the new Terms.
-      </p>
-
-      <h2 class="text-2xl font-bold mt-8 mb-3">9. Contact</h2>
-      <p class="text-slate-700">
-        Questions? Contact us at <a href="mailto:contact@funmath.tools" class="text-brand-500 hover:underline">contact@funmath.tools</a>
-      </p>
+    <div class="bg-white rounded-3xl shadow-lg p-8 space-y-6">
+      <p class="text-slate-700">{c.intro}</p>
+      {c.s.map(section => (
+        <section>
+          <h2 class="text-xl font-bold mb-2 text-slate-900">{section.title}</h2>
+          <p class="text-slate-700">{section.text}</p>
+        </section>
+      ))}
     </div>
   </div>
 </BaseLayout>

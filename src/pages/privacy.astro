@@ -1,90 +1,80 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-const title = 'Privacy Policy — FunMath Tools';
-const description = 'Privacy policy for FunMath Tools. Learn how we handle your data, cookies, and protect your privacy.';
+import { useTranslations, getLangFromUrl } from '../i18n/ui';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+
+const content = {
+  en: {
+    title: 'Privacy Policy', updated: 'Last updated: April 2026',
+    intro: 'At FunMath Tools, we take your privacy seriously. This Privacy Policy explains how we collect, use, and protect your information when you use our website.',
+    s1_title: '1. Information We Collect',
+    s1: 'FunMath Tools is designed to work without requiring personal information. We do not require sign-ups, accounts, or email addresses. We may collect: browser local storage data for game scores and preferences (stays on your device), anonymous usage statistics, and standard server logs.',
+    s2_title: '2. Cookies',
+    s2: 'We use cookies to remember your language preference, save game scores, and analyze website performance anonymously. You can disable cookies in your browser settings.',
+    s3_title: '3. Third-Party Services',
+    s3: 'We may use Google AdSense (ads), Google Analytics (anonymous stats), and Cloudflare (hosting). Each has its own privacy policy.',
+    s4_title: '4. Children\'s Privacy',
+    s4: 'FunMath Tools is safe for all ages. We do not knowingly collect personal information from children under 13.',
+    s5_title: '5. Contact',
+    s5: 'Questions about this Privacy Policy? Contact us at:',
+  },
+  ar: {
+    title: 'سياسة الخصوصية', updated: 'آخر تحديث: أبريل 2026',
+    intro: 'في فن-ماث تولز، نأخذ خصوصيتك بجدية. توضح سياسة الخصوصية هذه كيفية جمع واستخدام وحماية معلوماتك عند استخدام موقعنا.',
+    s1_title: '١. المعلومات التي نجمعها',
+    s1: 'تم تصميم فن-ماث تولز للعمل دون الحاجة إلى معلومات شخصية. لا نشترط التسجيل أو الحسابات أو عناوين البريد الإلكتروني. قد نجمع: بيانات التخزين المحلي للمتصفح لنتائج الألعاب والتفضيلات (تبقى على جهازك)، وإحصائيات استخدام مجهولة.',
+    s2_title: '٢. ملفات تعريف الارتباط',
+    s2: 'نستخدم ملفات تعريف الارتباط لتذكر تفضيل اللغة وحفظ نتائج الألعاب وتحليل أداء الموقع بشكل مجهول. يمكنك تعطيلها في إعدادات المتصفح.',
+    s3_title: '٣. خدمات الطرف الثالث',
+    s3: 'قد نستخدم Google AdSense للإعلانات، وGoogle Analytics للإحصائيات المجهولة، وCloudflare للاستضافة. لكل منها سياسة خصوصية خاصة بها.',
+    s4_title: '٤. خصوصية الأطفال',
+    s4: 'فن-ماث تولز آمن لجميع الأعمار. لا نجمع عن علم معلومات شخصية من الأطفال دون 13 عامًا.',
+    s5_title: '٥. التواصل',
+    s5: 'هل لديك أسئلة حول سياسة الخصوصية؟ تواصل معنا على:',
+  },
+  fr: {
+    title: 'Politique de Confidentialité', updated: 'Dernière mise à jour: Avril 2026',
+    intro: 'Chez FunMath Tools, nous prenons votre vie privée au sérieux. Cette politique explique comment nous collectons, utilisons et protégeons vos informations.',
+    s1_title: '1. Informations Collectées',
+    s1: 'FunMath Tools est conçu pour fonctionner sans informations personnelles. Nous ne demandons pas d\'inscription ou d\'email. Nous pouvons collecter des données de stockage local pour les scores (restent sur votre appareil) et des statistiques anonymes.',
+    s2_title: '2. Cookies',
+    s2: 'Nous utilisons des cookies pour retenir votre préférence de langue, sauvegarder les scores et analyser les performances du site de façon anonyme.',
+    s3_title: '3. Services Tiers',
+    s3: 'Nous utilisons Google AdSense (publicités), Google Analytics (statistiques anonymes) et Cloudflare (hébergement). Chacun a sa propre politique.',
+    s4_title: '4. Confidentialité des Enfants',
+    s4: 'FunMath Tools est sécurisé pour tous les âges. Nous ne collectons pas sciemment d\'informations personnelles d\'enfants de moins de 13 ans.',
+    s5_title: '5. Contact',
+    s5: 'Des questions sur cette politique? Contactez-nous:',
+  },
+};
+
+const c = content[lang as keyof typeof content] || content.en;
 ---
 
-<BaseLayout title={title} description={description}>
+<BaseLayout title={`${c.title} — FunMath Tools`} description={c.intro}>
   <div class="max-w-3xl mx-auto py-8">
     <nav class="text-sm text-slate-500 mb-6">
-      <a href="/" class="hover:text-brand-500">Home</a>
+      <a href="/" class="hover:text-brand-500">{t('nav.home' as any)}</a>
       <span class="mx-2">/</span>
-      <span>Privacy Policy</span>
+      <span>{c.title}</span>
     </nav>
 
-    <h1 class="text-4xl font-extrabold text-slate-900 mb-2">Privacy Policy</h1>
-    <p class="text-slate-500 mb-8">Last updated: April 2026</p>
+    <h1 class="text-4xl font-extrabold text-slate-900 mb-2">{c.title}</h1>
+    <p class="text-slate-500 mb-8">{c.updated}</p>
 
-    <div class="bg-white rounded-3xl shadow-lg p-8 prose prose-slate max-w-none">
-      <p class="text-slate-700">
-        At FunMath Tools, we take your privacy seriously. This Privacy Policy explains how we collect, use, and protect your information when you use our website.
-      </p>
-
-      <h2 class="text-2xl font-bold mt-8 mb-3">1. Information We Collect</h2>
-      <p class="text-slate-700 mb-3">
-        FunMath Tools is designed to work without requiring personal information. We do not require sign-ups, accounts, or email addresses to use our tools and games.
-      </p>
-      <p class="text-slate-700 mb-3">However, we may collect:</p>
-      <ul class="space-y-2 text-slate-700">
-        <li><strong>Local Storage Data:</strong> We use browser local storage to save your game scores, preferences, and progress on your own device. This data never leaves your device.</li>
-        <li><strong>Anonymous Usage Statistics:</strong> We may collect anonymous data about how the site is used (page views, popular tools) to improve our services.</li>
-        <li><strong>Technical Information:</strong> Standard server logs (IP address, browser type, device type) for security and performance.</li>
-      </ul>
-
-      <h2 class="text-2xl font-bold mt-8 mb-3">2. Cookies and Similar Technologies</h2>
-      <p class="text-slate-700 mb-3">
-        We use cookies and similar technologies to:
-      </p>
-      <ul class="space-y-2 text-slate-700">
-        <li>Remember your language preference</li>
-        <li>Save your game scores and settings</li>
-        <li>Analyze website performance (anonymously)</li>
-      </ul>
-      <p class="text-slate-700 mt-3">
-        You can disable cookies in your browser settings, but some features may not work properly.
-      </p>
-
-      <h2 class="text-2xl font-bold mt-8 mb-3">3. Third-Party Services</h2>
-      <p class="text-slate-700 mb-3">
-        We may use third-party services that have their own privacy policies:
-      </p>
-      <ul class="space-y-2 text-slate-700">
-        <li><strong>Google AdSense:</strong> We may display ads to support our free service. Google may use cookies to show personalized ads. Learn more at <a href="https://policies.google.com/technologies/ads" class="text-brand-500 hover:underline" target="_blank" rel="noopener">Google's Ad Policy</a>.</li>
-        <li><strong>Google Analytics:</strong> We may use Google Analytics to understand site usage anonymously.</li>
-        <li><strong>Cloudflare:</strong> Our hosting provider may collect security and performance data.</li>
-      </ul>
-
-      <h2 class="text-2xl font-bold mt-8 mb-3">4. Children's Privacy</h2>
-      <p class="text-slate-700">
-        FunMath Tools is designed to be safe for users of all ages. We do not knowingly collect personal information from children under 13. If you are a parent and believe your child has provided personal information, please contact us at <a href="mailto:contact@funmath.tools" class="text-brand-500 hover:underline">contact@funmath.tools</a>.
-      </p>
-
-      <h2 class="text-2xl font-bold mt-8 mb-3">5. Data Security</h2>
-      <p class="text-slate-700">
-        We use industry-standard security measures to protect any data we handle. Since we don't collect personal information by default, your privacy risk is minimal.
-      </p>
-
-      <h2 class="text-2xl font-bold mt-8 mb-3">6. Your Rights</h2>
-      <p class="text-slate-700 mb-3">You have the right to:</p>
-      <ul class="space-y-2 text-slate-700">
-        <li>Clear your local storage data anytime via your browser settings</li>
-        <li>Block cookies in your browser</li>
-        <li>Use ad-blocking software</li>
-        <li>Contact us with privacy concerns</li>
-      </ul>
-
-      <h2 class="text-2xl font-bold mt-8 mb-3">7. Changes to This Policy</h2>
-      <p class="text-slate-700">
-        We may update this Privacy Policy from time to time. Changes will be posted on this page with an updated "Last updated" date.
-      </p>
-
-      <h2 class="text-2xl font-bold mt-8 mb-3">8. Contact Us</h2>
-      <p class="text-slate-700">
-        If you have any questions about this Privacy Policy, please contact us:
-      </p>
-      <p class="text-slate-700 mt-2">
-        📧 <a href="mailto:contact@funmath.tools" class="text-brand-500 hover:underline">contact@funmath.tools</a>
-      </p>
+    <div class="bg-white rounded-3xl shadow-lg p-8 space-y-6">
+      <p class="text-slate-700">{c.intro}</p>
+      <section><h2 class="text-xl font-bold mb-2 text-slate-900">{c.s1_title}</h2><p class="text-slate-700">{c.s1}</p></section>
+      <section><h2 class="text-xl font-bold mb-2 text-slate-900">{c.s2_title}</h2><p class="text-slate-700">{c.s2}</p></section>
+      <section><h2 class="text-xl font-bold mb-2 text-slate-900">{c.s3_title}</h2><p class="text-slate-700">{c.s3}</p></section>
+      <section><h2 class="text-xl font-bold mb-2 text-slate-900">{c.s4_title}</h2><p class="text-slate-700">{c.s4}</p></section>
+      <section>
+        <h2 class="text-xl font-bold mb-2 text-slate-900">{c.s5_title}</h2>
+        <p class="text-slate-700">{c.s5}</p>
+        <p class="mt-2">📧 <a href="mailto:contact@funmath.tools" class="text-brand-500 hover:underline">contact@funmath.tools</a></p>
+      </section>
     </div>
   </div>
 </BaseLayout>
