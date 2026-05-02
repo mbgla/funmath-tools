@@ -4,66 +4,102 @@ import { useTranslations, getLangFromUrl } from '../../../i18n/ui';
 
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
-const title = 'Unit Converter — Convert Length, Weight, Volume & More | FunMath Tools';
-const description = 'Free online unit converter for students. Convert between metric, imperial, and scientific units. Organized by grade level: primary, middle school, high school, and Bac sciences.';
+
+const uc = {
+  en: {
+    title: 'Unit Converter',
+    subtitle: 'All units organized by school level. Convert anything in seconds.',
+    breadcrumb: 'Unit Converter',
+    school: '📚 School Level',
+    category: '📂 Category',
+    from: 'FROM', to: 'TO',
+    swap: '🔄 Swap',
+    presets: '⚡ QUICK PRESETS',
+    levels: { primary: 'Primary', middle: 'Middle', high: 'High School', bac: 'Bac Sciences', all: 'All' },
+  },
+  ar: {
+    title: 'محول الوحدات',
+    subtitle: 'جميع الوحدات منظمة حسب المستوى الدراسي. حوّل أي شيء في ثوانٍ.',
+    breadcrumb: 'محول الوحدات',
+    school: '📚 المستوى الدراسي',
+    category: '📂 الفئة',
+    from: 'من', to: 'إلى',
+    swap: '🔄 تبديل',
+    presets: '⚡ تحويلات سريعة',
+    levels: { primary: 'ابتدائي', middle: 'إعدادي', high: 'ثانوي', bac: 'الباكالوريا', all: 'الكل' },
+  },
+  fr: {
+    title: 'Convertisseur d\'Unités',
+    subtitle: 'Toutes les unités par niveau scolaire. Convertissez en secondes.',
+    breadcrumb: 'Convertisseur d\'Unités',
+    school: '📚 Niveau Scolaire',
+    category: '📂 Catégorie',
+    from: 'DE', to: 'VERS',
+    swap: '🔄 Inverser',
+    presets: '⚡ PRÉRÉGLAGES',
+    levels: { primary: 'Primaire', middle: 'Collège', high: 'Lycée', bac: 'Bac Sciences', all: 'Tout' },
+  },
+};
+const ui = uc[lang as keyof typeof uc] || uc.en;
+const pageTitle = `${ui.title} — FunMath Tools`;
 ---
 
-<BaseLayout title={title} description={description}>
+<BaseLayout title={pageTitle} description={ui.subtitle}>
   <nav class="text-sm text-slate-500 mb-4">
-    <a href="/" class="hover:text-brand-500">Home</a>
+    <a href="/" class="hover:text-brand-500">{t('nav.home' as any)}</a>
     <span class="mx-2">/</span>
-    <a href="/#tools" class="hover:text-brand-500">Tools</a>
+    <a href="/#tools" class="hover:text-brand-500">{t('footer.tools' as any)}</a>
     <span class="mx-2">/</span>
-    <span>Unit Converter</span>
+    <span>{ui.breadcrumb}</span>
   </nav>
 
   <div class="text-center mb-8">
     <div class="inline-flex w-20 h-20 rounded-3xl bg-gradient-to-br from-cyan-400 to-teal-600 items-center justify-center text-5xl mb-4">📐</div>
-    <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 mb-3">Unit Converter</h1>
-    <p class="text-slate-600 max-w-xl mx-auto">All units organized by school level. Convert anything in seconds.</p>
+    <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 mb-3">{ui.title}</h1>
+    <p class="text-slate-600 max-w-xl mx-auto">{ui.subtitle}</p>
   </div>
 
   <div class="max-w-3xl mx-auto bg-white rounded-3xl shadow-xl p-6 md:p-8">
     
-    <!-- Level Selector -->
-    <div class="mb-6">
-      <label class="block text-sm font-bold text-slate-700 mb-3"data-i18n="uc_school">📚 School Level</label>
-      <div class="grid grid-cols-2 md:grid-cols-5 gap-2">
+    <!-- Level Selector - always LTR for visual consistency -->
+    <div class="mb-6" dir="ltr">
+      <label class="block text-sm font-bold text-slate-700 mb-3">{ui.school}</label>
+      <div class="grid grid-cols-5 gap-2">
+        <button class="level-btn p-3 rounded-xl font-bold border-2 border-slate-200 hover:border-cyan-500 transition text-sm" data-level="all" data-active="true">
+          <div class="text-xl mb-1">🌍</div>
+          <div>{ui.levels.all}</div>
+        </button>
         <button class="level-btn p-3 rounded-xl font-bold border-2 border-slate-200 hover:border-cyan-500 transition text-sm" data-level="primary">
           <div class="text-xl mb-1">🌱</div>
-          <div data-i18n="uc_primary">Primary</div>
+          <div>{ui.levels.primary}</div>
         </button>
         <button class="level-btn p-3 rounded-xl font-bold border-2 border-slate-200 hover:border-cyan-500 transition text-sm" data-level="middle">
           <div class="text-xl mb-1">🔥</div>
-          <div data-i18n="uc_middle">Middle</div>
+          <div>{ui.levels.middle}</div>
         </button>
         <button class="level-btn p-3 rounded-xl font-bold border-2 border-slate-200 hover:border-cyan-500 transition text-sm" data-level="high">
           <div class="text-xl mb-1">⚡</div>
-          <div data-i18n="uc_high">High School</div>
+          <div>{ui.levels.high}</div>
         </button>
         <button class="level-btn p-3 rounded-xl font-bold border-2 border-slate-200 hover:border-cyan-500 transition text-sm" data-level="bac">
           <div class="text-xl mb-1">🎓</div>
-          <div data-i18n="uc_bac">Bac Sciences</div>
-        </button>
-        <button class="level-btn p-3 rounded-xl font-bold border-2 border-slate-200 hover:border-cyan-500 transition text-sm" data-level="all" data-active="true">
-          <div class="text-xl mb-1">🌍</div>
-          <div data-i18n="uc_all">All</div>
+          <div>{ui.levels.bac}</div>
         </button>
       </div>
     </div>
 
     <!-- Category Selector -->
     <div class="mb-6">
-      <label class="block text-sm font-bold text-slate-700 mb-3"data-i18n="uc_category">📂 Category</label>
-      <div id="categoryButtons" class="flex flex-wrap gap-2"></div>
+      <label class="block text-sm font-bold text-slate-700 mb-3">{ui.category}</label>
+      <div id="categoryButtons" class="flex flex-wrap gap-2" dir="ltr"></div>
     </div>
 
-    <!-- Conversion area -->
-    <div class="bg-gradient-to-br from-cyan-50 to-teal-50 rounded-2xl p-5 mb-4">
+    <!-- Conversion area - always LTR: FROM (left) → TO (right) -->
+    <div class="bg-gradient-to-br from-cyan-50 to-teal-50 rounded-2xl p-5 mb-4" dir="ltr">
       <div class="grid md:grid-cols-2 gap-4">
         <!-- From -->
         <div>
-          <label class="block text-xs font-bold text-slate-600 mb-2"data-i18n="uc_from">FROM</label>
+          <label class="block text-xs font-bold text-slate-600 mb-2">{ui.from}</label>
           <input
             type="number"
             id="fromValue"
@@ -76,7 +112,7 @@ const description = 'Free online unit converter for students. Convert between me
 
         <!-- To -->
         <div>
-          <label class="block text-xs font-bold text-slate-600 mb-2"data-i18n="uc_to">TO</label>
+          <label class="block text-xs font-bold text-slate-600 mb-2">{ui.to}</label>
           <input
             type="text"
             id="toValue"
@@ -89,13 +125,13 @@ const description = 'Free online unit converter for students. Convert between me
 
       <!-- Swap button -->
       <button id="swapBtn" class="mt-4 w-full py-2 rounded-xl bg-white border-2 border-cyan-300 text-cyan-700 font-bold hover:bg-cyan-100 active:scale-95 transition text-sm">
-        🔄 Swap
+        {ui.swap}
       </button>
     </div>
 
     <!-- Quick conversions -->
     <div class="mt-4">
-      <div class="text-xs text-slate-500 font-bold mb-2"data-i18n="uc_presets">⚡ QUICK PRESETS</div>
+      <div class="text-xs text-slate-500 font-bold mb-2">{ui.presets}</div>
       <div id="quickPresets" class="flex flex-wrap gap-2 text-xs"></div>
     </div>
 
@@ -629,12 +665,7 @@ const description = 'Free online unit converter for students. Convert between me
     activeLevelBtn.classList.add('border-cyan-500', 'bg-cyan-50');
   }
 
-  // Translate level button labels
-  document.querySelectorAll('.level-btn').forEach(btn => {
-    const level = (btn as HTMLElement).dataset.level || '';
-    const textDiv = btn.querySelector('div:last-child');
-    if (textDiv) textDiv.textContent = getLevelName(level);
-  });
+  // Level button click handlers
 
   // Listeners
   fromValue?.addEventListener('input', convert);
